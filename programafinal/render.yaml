@@ -3,7 +3,7 @@ services:
     name: mi-app-flask
     runtime: python
     buildCommand: ""
-    startCommand: gunicorn app:app
+    startCommand: gunicorn backendfinal:app
     envVars:
       - key: FLASK_ENV
         value: production
