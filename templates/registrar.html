@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% block title %}Registrar Animal en {{ raza.nombre }}{% endblock %}
+{% block content %}
+<h2>Registrar Animal en {{ raza.nombre }}</h2>
+<form method="post">
+    <div class="row g-3">
+        <div class="col-md-3">
+            <label class="form-label">RP*</label>
+            <input class="form-control" name="rp" required maxlength="20">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Nombre</label>
+            <input class="form-control" name="nombre" maxlength="100">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Fecha Nacimiento</label>
+            <input type="date" class="form-control" name="fecha_nacimiento">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Sexo</label>
+            <select class="form-select" name="sexo">
+                <option value="">-</option>
+                <option value="Macho">Macho</option>
+                <option value="Hembra">Hembra</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Color</label>
+            <input class="form-control" name="color" maxlength="50">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Padre</label>
+            <input class="form-control" name="padre" maxlength="100">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Madre</label>
+            <input class="form-control" name="madre" maxlength="100">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Abuelo Paterno</label>
+            <input class="form-control" name="abuelo_paterno" maxlength="100">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Abuelo Materno</label>
+            <input class="form-control" name="abuelo_materno" maxlength="100">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">HBA</label>
+            <input class="form-control" name="hba" maxlength="50">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Nacimiento</label>
+            <input class="form-control" name="nacimiento" maxlength="10">
+        </div>
+        <!-- Valores y evaluaciones -->
+        <div class="col-md-2">
+            <label class="form-label">Val 14m</label>
+            <input class="form-control" name="val_14m" maxlength="100">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Val 18m</label>
+            <input class="form-control" name="val_18m" maxlength="100">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Val Ternero</label>
+            <input class="form-control" name="val_ternero" maxlength="100">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Val Adulto</label>
+            <input class="form-control" name="val_adulto" maxlength="100">
+        </div>
+        <!-- Características -->
+        <div class="col-md-2">
+            <label class="form-label">Pezuñas</label>
+            <input class="form-control" name="pezuñas" type="number" min="0">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Articulación</label>
+            <input class="form-control" name="articulacion" type="number" min="0">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Garrones</label>
+            <input class="form-control" name="garrones" type="number" min="0">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Patas Atrás</label>
+            <input class="form-control" name="patas_atras" type="number" min="0">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Manos</label>
+            <input class="form-control" name="manos" type="number" min="0">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">CE (cm)</label>
+            <input class="form-control" name="ce" type="number" min="0" step="0.01">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Ubres/Pezones</label>
+            <input class="form-control" name="ubres_pezones" type="number" min="0">
+        </div>
+        <div class="col-md-12">
+            <label class="form-label">Comentarios</label>
+            <textarea class="form-control" name="comentarios" rows="2"></textarea>
+        </div>
+        <div class="col-md-12">
+            <label class="form-label">Premios</label>
+            <textarea class="form-control" name="premios" rows="2"></textarea>
+        </div>
+        <!-- EPDs -->
+        <div class="col-md-2">
+            <label class="form-label">EPD Nac</label>
+            <input class="form-control" name="epd_nac" maxlength="50">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">EPD Dest</label>
+            <input class="form-control" name="epd_dest" maxlength="50">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">EPD Leche</label>
+            <input class="form-control" name="epd_leche" maxlength="50">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">EPD 18m</label>
+            <input class="form-control" name="epd_18m" maxlength="50">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">EPD PaV</label>
+            <input class="form-control" name="epd_pa_v" maxlength="50">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">EPD CE</label>
+            <input class="form-control" name="epd_ce" maxlength="50">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">EPD AOB</label>
+            <input class="form-control" name="epd_aob" maxlength="50">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">EPD EGS</label>
+            <input class="form-control" name="epd_egs" maxlength="50">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">EPD MARB</label>
+            <input class="form-control" name="epd_marb" maxlength="50">
+        </div>
+    </div>
+    <div class="mt-4">
+        <button class="btn btn-success">Registrar Animal</button>
+        <a class="btn btn-secondary" href="{{ url_for('ver_raza', raza_id=raza.id) }}">Volver</a>
+    </div>
+</form>
+{% endblock %}
