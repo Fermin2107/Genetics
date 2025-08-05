@@ -7,7 +7,7 @@ import os
 
 app = Flask(__name__)
 # Cambia los datos de usuario y password por los tuyos
-app.config['postgresql://postgres:Gurruchaga46@localhost/animalesdb'] = 'postgresql://postgres:Gurruchaga46@localhost/animalesdb'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://animalesdb_user:s64kRg9jEXIXz6xFm3l5zWdu5S9aBwlJ@dpg-d296q0buibrs73e99br0-a/animalesdb'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'secreto_muy_fuerte'
 
@@ -389,4 +389,5 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
 
