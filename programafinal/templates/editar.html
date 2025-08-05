@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Editar Animal</h2>
+  <form method="post">
+    <div class="mb-3">
+      <label for="rp" class="form-label">RP</label>
+      <input type="text" class="form-control" id="rp" name="rp" value="{{ animal.rp }}" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="nombre" class="form-label">Nombre</label>
+      <input type="text" class="form-control" id="nombre" name="nombre" value="{{ animal.nombre }}">
+    </div>
+
+    <div class="mb-3">
+      <label for="fecha_nacimiento" class="form-label">Fecha de nacimiento</label>
+      <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento"
+             value="{{ animal.fecha_nac.strftime('%Y-%m-%d') if animal.fecha_nac }}">
+    </div>
+
+    <div class="mb-3">
+      <label for="hba" class="form-label">HBA</label>
+      <input type="text" class="form-control" id="hba" name="hba" value="{{ animal.hba }}">
+    </div>
+
+    <div class="mb-3">
+      <label for="sexo" class="form-label">Sexo</label>
+      <select class="form-select" id="sexo" name="sexo">
+        <option value="">Seleccionar</option>
+        <option value="Macho" {% if animal.sexo == 'Macho' %}selected{% endif %}>Macho</option>
+        <option value="Hembra" {% if animal.sexo == 'Hembra' %}selected{% endif %}>Hembra</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="color" class="form-label">Color</label>
+      <input type="text" class="form-control" id="color" name="color" value="{{ animal.color }}">
+    </div>
+
+    <div class="mb-3">
+      <label for="padre" class="form-label">Padre</label>
+      <input type="text" class="form-control" id="padre" name="padre" value="{{ animal.padre }}">
+    </div>
+
+    <div class="mb-3">
+      <label for="madre" class="form-label">Madre</label>
+      <input type="text" class="form-control" id="madre" name="madre" value="{{ animal.madre }}">
+    </div>
+
+    <div class="mb-3">
+      <label for="abuelo_paterno" class="form-label">Abuelo paterno</label>
+      <input type="text" class="form-control" id="abuelo_paterno" name="abuelo_paterno" value="{{ animal.abuelo_paterno }}">
+    </div>
+
+    <div class="mb-3">
+      <label for="abuelo_materno" class="form-label">Abuelo materno</label>
+      <input type="text" class="form-control" id="abuelo_materno" name="abuelo_materno" value="{{ animal.abuelo_materno }}">
+    </div>
+
+    <div class="mb-3">
+      <label for="nacimiento" class="form-label">Nacimiento</label>
+      <input type="text" class="form-control" id="nacimiento" name="nacimiento" value="{{ animal.nacimiento }}">
+    </div>
+
+    <div class="mb-3">
+      <label for="val_14m" class="form-label">Valoración 14m</label>
+      <input type="text" class="form-control" id="val_14m" name="val_14m" value="{{ animal.val_14m }}">
+    </div>
+
+    <div class="mb-3">
+      <label for="val_18m" class="form-label">Valoración 18m</label>
+      <input type="text" class="form-control" id="val_18m" name="val_18m" value="{{ animal.val_18m }}">
+    </div>
+
+    <div class="mb-3">
+      <label for="val_ternero" class="form-label">Valoración ternero</label>
+      <input type="text" class="form-control" id="val_ternero" name="val_ternero" value="{{ animal.val_ternero }}">
+    </div>
+
+    <div class="mb-3">
+      <label for="val_adulto" class="form-label">Valoración adulto</label>
+      <input type="text" class="form-control" id="val_adulto" name="val_adulto" value="{{ animal.val_adulto }}">
+    </div>
+
+    <div class="mb-3">
+      <label for="pezuñas" class="form-label">Pezuñas</label>
+      <input type="number" class="form-control" id="pezuñas" name="pezuñas" value="{{ animal.pezuñas }}">
+    </div>
+
+    <div class="mb-3">
+      <label for="articulacion" class="form-label">Articulación</label>
+      <input type="number" class="form-control" id="articulacion" name="articulacion" value="{{ animal.articulacion }}">
+    </div>
+
+    <div class="mb-3">
+      <label for="garrones" class="form-label">Garrones</label>
+      <input type="number" class="form-control" id="garrones" name="garrones" value="{{ animal.garrones }}">
+    </div>
+
+    <div class="mb-3">
+      <label for="patas_atras" class="form-label">Patas atrás</label>
+      <input type="number" class="form-control" id="patas_atras" name="patas_atras" value="{{ animal.patas_atras }}">
+    </div>
+
+    <div class="mb-3">
+      <label for="manos" class="form-label">Manos</label>
+      <input type="number" class="form-control" id="manos" name="manos" value="{{ animal.manos }}">
+    </div>
+
+    <div class="mb-3">
+      <label for="ce" class="form-label">CE</label>
+      <input type="number" step="any" class="form-control" id="ce" name="ce" value="{{ animal.ce }}">
+    </div>
+
+    <div class="mb-3">
+      <label for="ubres_pezones" class="form-label">Ubres/pezones</label>
+      <input type="number" class="form-control" id="ubres_pezones" name="ubres_pezones" value="{{ animal.ubres_pezones }}">
+    </div>
+
+    <div class="mb-3">
+      <label for="comentarios" class="form-label">Comentarios</label>
+      <textarea class="form-control" id="comentarios" name="comentarios" rows="2">{{ animal.comentarios }}</textarea>
+    </div>
+
+    <div class="mb-3">
+      <label for="premios" class="form-label">Premios</label>
+      <textarea class="form-control" id="premios" name="premios" rows="2">{{ animal.premios }}</textarea>
+    </div>
+
+    <div class="mb-3">
+      <label for="epd_nac" class="form-label">EPD Nacimiento</label>
+      <input type="text" class="form-control" id="epd_nac" name="epd_nac" value="{{ animal.epd_nac }}">
+    </div>
+    <div class="mb-3">
+      <label for="epd_dest" class="form-label">EPD Destete</label>
+      <input type="text" class="form-control" id="epd_dest" name="epd_dest" value="{{ animal.epd_dest }}">
+    </div>
+    <div class="mb-3">
+      <label for="epd_leche" class="form-label">EPD Leche</label>
+      <input type="text" class="form-control" id="epd_leche" name="epd_leche" value="{{ animal.epd_leche }}">
+    </div>
+    <div class="mb-3">
+      <label for="epd_18m" class="form-label">EPD 18m</label>
+      <input type="text" class="form-control" id="epd_18m" name="epd_18m" value="{{ animal.epd_18m }}">
+    </div>
+    <div class="mb-3">
+      <label for="epd_pa_v" class="form-label">EPD PA/V</label>
+      <input type="text" class="form-control" id="epd_pa_v" name="epd_pa_v" value="{{ animal.epd_pa_v }}">
+    </div>
+    <div class="mb-3">
+      <label for="epd_ce" class="form-label">EPD CE</label>
+      <input type="text" class="form-control" id="epd_ce" name="epd_ce" value="{{ animal.epd_ce }}">
+    </div>
+    <div class="mb-3">
+      <label for="epd_aob" class="form-label">EPD AOB</label>
+      <input type="text" class="form-control" id="epd_aob" name="epd_aob" value="{{ animal.epd_aob }}">
+    </div>
+    <div class="mb-3">
+      <label for="epd_egs" class="form-label">EPD EGS</label>
+      <input type="text" class="form-control" id="epd_egs" name="epd_egs" value="{{ animal.epd_egs }}">
+    </div>
+    <div class="mb-3">
+      <label for="epd_marb" class="form-label">EPD MARB</label>
+      <input type="text" class="form-control" id="epd_marb" name="epd_marb" value="{{ animal.epd_marb }}">
+    </div>
+    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+    <a href="{{ url_for('ficha_animal', id=animal.id) }}" class="btn btn-secondary">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

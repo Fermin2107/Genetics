@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Listado de Razas{% endblock %}
+{% block content %}
+<h2>Razas</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Cantidad de animales</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for raza in razas %}
+        <tr>
+            <td><a href="{{ url_for('ver_raza', raza_id=raza.id) }}">{{ raza.nombre }}</a></td>
+            <td>{{ raza.animales|length }}</td>
+            <td>
+                <form action="{{ url_for('eliminar_raza', raza_id=raza.id) }}" method="post" style="display:inline;" onsubmit="return confirm('¿Eliminar raza {{ raza.nombre }}?');">
+                    <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a class="btn btn-primary" href="{{ url_for('agregar_raza') }}">Agregar Nueva Raza</a>
+{% endblock %}
