@@ -27,6 +27,9 @@ class User(UserMixin, db.Model):
         self.password_hash = generate_password_hash(password)
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+if __name__ == "__main__":
+    db.create_all()
+    app.run()
 
 class Raza(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -389,5 +392,6 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
 
 
