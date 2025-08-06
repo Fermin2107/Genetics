@@ -3,10 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user, UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
-import os
 
 app = Flask(__name__)
-# Cambia los datos de usuario y password por los tuyos
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://animalesdb_user:s64kRg9jEXIXz6xFm3l5zWdu5S9aBwlJ@dpg-d296q0buibrs73e99br0-a.oregon-postgres.render.com/animalesdb'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'secreto_muy_fuerte'
@@ -14,14 +12,11 @@ app.config['SECRET_KEY'] = 'secreto_muy_fuerte'
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
-from app import db, app
-
-with app.app_context():
-    db.create_all()
 
 # MODELOS
 
 class User(UserMixin, db.Model):
+    __tablename__ = 'users' # <-- evita palabra reservada
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
@@ -31,14 +26,11 @@ class User(UserMixin, db.Model):
         self.password_hash = generate_password_hash(password)
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
-if __name__ == "__main__":
-    db.create_all()
-    app.run()
 
 class Raza(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(50), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     animales = db.relationship('Animal', backref='raza', lazy=True)
     __table_args__ = (db.UniqueConstraint('nombre', 'user_id', name='uq_raza_nombre_user'),)
 
@@ -219,7 +211,7 @@ def registrar_animal(raza_id):
             val = data.get(key, '').strip()
             try: return datetime.strptime(val, '%Y-%m-%d') if val else None
             except ValueError: flash(f'Formato de fecha incorrecto para {key}.', 'danger'); return None
-        rp = get_val('rp', 'upper')  # ahora RP en mayúsculas también
+        rp = get_val('rp', 'upper')
         if not rp:
             flash('El RP es obligatorio.', 'danger')
             return render_template('registrar.html', raza=raza)
@@ -229,7 +221,7 @@ def registrar_animal(raza_id):
         nuevo_animal = Animal(
             raza_id=raza.id,
             rp=rp,
-            nombre=get_val('nombre', 'upper'),  # nombre en mayúsculas
+            nombre=get_val('nombre', 'upper'),
             fecha_nac=get_date('fecha_nacimiento'),
             hba=get_val('hba'),
             sexo=get_val('sexo'),
@@ -394,7 +386,7 @@ def eliminar_animal(id):
 
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()
+        db.create_all()  # <-- crea todas las tablas desde cero
     app.run(debug=True)
 
 
