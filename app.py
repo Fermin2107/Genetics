@@ -5,7 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://animalesdb_user:s64kRg9jEXIXz6xFm3l5zWdu5S9aBwlJ@dpg-d296q0buibrs73e99br0-a.oregon-postgres.render.com/animalesdb'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://animalesdb_user:z1xIETnjgzHv4GZXEDNQlRC9Cq0tDJfX@dpg-d29unpndiees738f42u0-a.oregon-postgres.render.com/animalesdb_6g2y'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'secreto_muy_fuerte'
 
@@ -388,6 +388,7 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # <-- crea todas las tablas desde cero
     app.run(debug=True)
+
 
 
 
