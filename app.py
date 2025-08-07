@@ -72,6 +72,11 @@ class Animal(db.Model):
     epd_marb = db.Column(db.String(50))
     __table_args__ = (db.UniqueConstraint('rp', 'raza_id', name='uq_animal_rp_raza'),)
 
+@app.route('/initdb')
+def initdb():
+    db.create_all()
+    return "Base de datos inicializada correctamente"
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -388,6 +393,7 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # <-- crea todas las tablas desde cero
     app.run(debug=True)
+
 
 
 
