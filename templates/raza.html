@@ -1,138 +1,86 @@
 {% extends "base.html" %}
 {% block content %}
-<h1 class="mt-4 mb-3">Animales de la raza: {{ raza.nombre }}</h1>
+<h2>Animales de la raza: {{ raza.nombre }}</h2>
+<form method="get" action="">
+    <label for="rp">RP:</label>
+    <input type="text" name="rp" id="rp" value="{{ request.args.get('rp', '') }}">
 
-<div class="d-flex flex-wrap mb-3 gap-2">
-  <a href="{{ url_for('registrar_animal', raza_id=raza.id) }}" class="btn btn-primary">Registrar Nuevo Animal</a>
-</div>
+    <label for="nombre">Nombre:</label>
+    <input type="text" name="nombre" id="nombre" value="{{ request.args.get('nombre', '') }}">
 
-<form class="row g-2 mb-3" method="get" action="{{ url_for('ver_raza', raza_id=raza.id) }}">
-  <div class="col-auto">
-    <input type="text" name="rp" class="form-control" placeholder="RP" value="{{ request.args.get('rp', '') }}">
-  </div>
-  <div class="col-auto">
-    <input type="text" name="nombre" class="form-control" placeholder="Nombre" value="{{ request.args.get('nombre', '') }}">
-  </div>
-  <div class="col-auto">
-    <input type="text" name="padre" class="form-control" placeholder="Padre" value="{{ request.args.get('padre', '') }}">
-  </div>
-  <div class="col-auto">
-    <input type="text" name="madre" class="form-control" placeholder="Madre" value="{{ request.args.get('madre', '') }}">
-  </div>
-  <div class="col-auto">
-    <input type="date" name="fecha_nac_min" class="form-control" placeholder="Fecha Nac. desde" value="{{ request.args.get('fecha_nac_min', '') }}">
-  </div>
-  <div class="col-auto">
-    <input type="date" name="fecha_nac_max" class="form-control" placeholder="Fecha Nac. hasta" value="{{ request.args.get('fecha_nac_max', '') }}">
-  </div>
-  <!-- Campos de rango: pezuñas, ap_delanteros, curv_garrones, ap_traseros, articulacion, ubres_pezones -->
-  <div class="col-auto">
-    <input type="text" name="pezuñas_min" class="form-control" placeholder="Pezuñas mín" value="{{ request.args.get('pezuñas_min', '') }}">
-  </div>
-  <div class="col-auto">
-    <input type="text" name="pezuñas_max" class="form-control" placeholder="Pezuñas máx" value="{{ request.args.get('pezuñas_max', '') }}">
-  </div>
-  <div class="col-auto">
-    <input type="text" name="ap_delanteros_min" class="form-control" placeholder="Aplomos Delanteros mín" value="{{ request.args.get('ap_delanteros_min', '') }}">
-  </div>
-  <div class="col-auto">
-    <input type="text" name="ap_delanteros_max" class="form-control" placeholder="Aplomos Delanteros máx" value="{{ request.args.get('ap_delanteros_max', '') }}">
-  </div>
-  <div class="col-auto">
-    <input type="text" name="curv_garrones_min" class="form-control" placeholder="Curv. Garrones mín" value="{{ request.args.get('curv_garrones_min', '') }}">
-  </div>
-  <div class="col-auto">
-    <input type="text" name="curv_garrones_max" class="form-control" placeholder="Curv. Garrones máx" value="{{ request.args.get('curv_garrones_max', '') }}">
-  </div>
-  <div class="col-auto">
-    <input type="text" name="ap_traseros_min" class="form-control" placeholder="Aplomos Traseros mín" value="{{ request.args.get('ap_traseros_min', '') }}">
-  </div>
-  <div class="col-auto">
-    <input type="text" name="ap_traseros_max" class="form-control" placeholder="Aplomos Traseros máx" value="{{ request.args.get('ap_traseros_max', '') }}">
-  </div>
-  <div class="col-auto">
-    <input type="text" name="articulacion_min" class="form-control" placeholder="Articulación mín" value="{{ request.args.get('articulacion_min', '') }}">
-  </div>
-  <div class="col-auto">
-    <input type="text" name="articulacion_max" class="form-control" placeholder="Articulación máx" value="{{ request.args.get('articulacion_max', '') }}">
-  </div>
-  <div class="col-auto">
-    <input type="text" name="ubres_pezones_min" class="form-control" placeholder="Ubres/Pezones mín" value="{{ request.args.get('ubres_pezones_min', '') }}">
-  </div>
-  <div class="col-auto">
-    <input type="text" name="ubres_pezones_max" class="form-control" placeholder="Ubres/Pezones máx" value="{{ request.args.get('ubres_pezones_max', '') }}">
-  </div>
-  <div class="col-auto">
-    <select name="sexo" class="form-select">
-      <option value="">Sexo: Todos</option>
-      <option value="Macho" {% if request.args.get('sexo') == 'Macho' %}selected{% endif %}>Macho</option>
-      <option value="Hembra" {% if request.args.get('sexo') == 'Hembra' %}selected{% endif %}>Hembra</option>
+    <label for="padre">Padre:</label>
+    <input type="text" name="padre" id="padre" value="{{ request.args.get('padre', '') }}">
+
+    <label for="madre">Madre:</label>
+    <input type="text" name="madre" id="madre" value="{{ request.args.get('madre', '') }}">
+
+    <label for="sexo">Sexo:</label>
+    <input type="text" name="sexo" id="sexo" value="{{ request.args.get('sexo', '') }}">
+
+    <label for="fecha_nac_min">Fecha nac. (mín):</label>
+    <input type="date" name="fecha_nac_min" id="fecha_nac_min" value="{{ request.args.get('fecha_nac_min', '') }}">
+    <label for="fecha_nac_max">Fecha nac. (máx):</label>
+    <input type="date" name="fecha_nac_max" id="fecha_nac_max" value="{{ request.args.get('fecha_nac_max', '') }}">
+
+    <!-- FILTROS NUMÉRICOS -->
+    <label for="pezuñas_min">Pezuñas (mín):</label>
+    <input type="number" step="any" name="pezuñas_min" id="pezuñas_min" value="{{ request.args.get('pezuñas_min', '') }}">
+    <label for="pezuñas_max">Pezuñas (máx):</label>
+    <input type="number" step="any" name="pezuñas_max" id="pezuñas_max" value="{{ request.args.get('pezuñas_max', '') }}">
+
+    <label for="articulacion_min">Articulación (mín):</label>
+    <input type="number" step="any" name="articulacion_min" id="articulacion_min" value="{{ request.args.get('articulacion_min', '') }}">
+    <label for="articulacion_max">Articulación (máx):</label>
+    <input type="number" step="any" name="articulacion_max" id="articulacion_max" value="{{ request.args.get('articulacion_max', '') }}">
+
+    <label for="clase_min">Clase (mín):</label>
+    <input type="number" step="any" name="clase_min" id="clase_min" value="{{ request.args.get('clase_min', '') }}">
+    <label for="clase_max">Clase (máx):</label>
+    <input type="number" step="any" name="clase_max" id="clase_max" value="{{ request.args.get('clase_max', '') }}">
+
+    <label for="orden">Orden RP:</label>
+    <select name="orden" id="orden">
+        <option value="asc" {% if orden == 'asc' %}selected{% endif %}>Ascendente</option>
+        <option value="desc" {% if orden == 'desc' %}selected{% endif %}>Descendente</option>
     </select>
-  </div>
-  <div class="col-auto">
-    <select name="orden" class="form-select">
-      <option value="asc" {% if orden == 'asc' %}selected{% endif %}>RP Ascendente</option>
-      <option value="desc" {% if orden == 'desc' %}selected{% endif %}>RP Descendente</option>
-    </select>
-  </div>
-  <div class="col-auto">
-    <button class="btn btn-outline-secondary" type="submit">Filtrar</button>
-  </div>
+
+    <button type="submit">Filtrar</button>
 </form>
+<p>Total: {{ total }}</p>
 
-<p class="mb-1">Total: <b>{{ total }}</b></p>
-
-<div class="table-responsive">
-  <table class="table table-bordered align-middle">
+<table>
     <thead>
-      <tr>
-        <th>RP</th>
-        <th>Nombre</th>
-        <th>Sexo</th>
-        <th>Fecha Nac.</th>
-        <th>Padre</th>
-        <th>Madre</th>
-        <th>Acciones</th>
-      </tr>
+        <tr>
+            <th>RP</th>
+            <th>Nombre</th>
+            <th>Padre</th>
+            <th>Madre</th>
+            <th>Pezuñas</th>
+            <th>Articulación</th>
+            <th>Clase</th>
+            <th>Acciones</th>
+        </tr>
     </thead>
     <tbody>
-      {% for animal in animales %}
-      <tr>
-        <td>
-          <a href="{{ url_for('ficha_animal', id=animal.id) }}">{{ animal.rp }}</a>
-        </td>
-        <td>
-          <a href="{{ url_for('ficha_animal', id=animal.id) }}">{{ animal.nombre }}</a>
-        </td>
-        <td>{{ animal.sexo }}</td>
-        <td>{% if animal.fecha_nac %}{{ animal.fecha_nac.strftime('%Y-%m-%d') }}{% endif %}</td>
-        <td>
-          {% set padre = animales|selectattr("rp", "equalto", animal.padre)|first or animales|selectattr("nombre", "equalto", animal.padre)|first %}
-          {% if padre %}
-            <a href="{{ url_for('ficha_animal', id=padre.id) }}">{{ animal.padre }}</a>
-          {% else %}
-            {{ animal.padre }}
-          {% endif %}
-        </td>
-        <td>
-          {% set madre = animales|selectattr("rp", "equalto", animal.madre)|first or animales|selectattr("nombre", "equalto", animal.madre)|first %}
-          {% if madre %}
-            <a href="{{ url_for('ficha_animal', id=madre.id) }}">{{ animal.madre }}</a>
-          {% else %}
-            {{ animal.madre }}
-          {% endif %}
-        </td>
-        <td>
-          <a href="{{ url_for('ficha_animal', id=animal.id) }}" class="btn btn-sm btn-info">Ver</a>
-          <a href="{{ url_for('editar_animal', id=animal.id) }}" class="btn btn-sm btn-warning">Editar</a>
-          <form action="{{ url_for('eliminar_animal', id=animal.id) }}" method="post" style="display:inline;" onsubmit="return confirm('¿Seguro que deseas eliminar este animal?');">
-            <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
+        {% for animal in animales %}
+        <tr>
+            <td>{{ animal.rp }}</td>
+            <td>{{ animal.nombre }}</td>
+            <td>{{ animal.padre }}</td>
+            <td>{{ animal.madre }}</td>
+            <td>{{ animal.pezuñas }}</td>
+            <td>{{ animal.articulacion }}</td>
+            <td>{{ animal.clase }}</td>
+            <td>
+                <a href="{{ url_for('ficha_animal', id=animal.id) }}">Ver</a>
+                <a href="{{ url_for('editar_animal', id=animal.id) }}">Editar</a>
+                <form method="post" action="{{ url_for('eliminar_animal', id=animal.id) }}" style="display:inline;">
+                    <button type="submit" onclick="return confirm('¿Seguro que quieres eliminar?')">Eliminar</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
     </tbody>
-  </table>
-</div>
-<a href="{{ url_for('razas') }}" class="btn btn-secondary mt-3">Volver a Razas</a>
+</table>
+<a href="{{ url_for('registrar_animal', raza_id=raza.id) }}">Registrar nuevo animal</a>
 {% endblock %}
