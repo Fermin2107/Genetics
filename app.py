@@ -190,25 +190,26 @@ def ver_raza(raza_id):
     sexo = request.args.get('sexo')
     if sexo:
         query = query.filter_by(sexo=sexo)
-    def filtrar_rango(campo):
+
+    # Filtrado por rango con query como argumento
+    def filtrar_rango(query, campo):
         min_val = request.args.get(f'{campo}_min')
         max_val = request.args.get(f'{campo}_max')
-        # Los campos ahora son strings, se comparan lexicográficamente
         if min_val:
             query = query.filter(getattr(Animal, campo) >= min_val)
         if max_val:
             query = query.filter(getattr(Animal, campo) <= max_val)
         return query
-    for campo in ['pezuñas', 'ubres_pezones', 'ap_delanteros', 'garrones', 'ap_traseros', 'articulacion']:
-        query = filtrar_rango(campo)
+
+    # Asegúrate de usar los nombres correctos de los campos en la base de datos/modelo Animal
+    for campo in ['pezuñas', 'ubres_pezones', 'ap_delanteros', 'curv_garrones', 'ap_traseros', 'articulacion']:
+        query = filtrar_rango(query, campo)
+
     orden = request.args.get('orden', 'asc')
-    # Para ordenar RP por valor numérico si posible
     if orden == 'desc':
         try:
-            # Si todos los RP son números, ordena por cast
             animales = query.order_by(db.cast(Animal.rp, db.Integer).desc()).all()
         except Exception:
-            # Si hay letras, ordena como string
             animales = query.order_by(Animal.rp.desc()).all()
     else:
         try:
@@ -310,7 +311,7 @@ def buscar_animales(raza_id):
         min_v = filtros.get(f'{campo}_min', '').strip()
         max_v = filtros.get(f'{campo}_max', '').strip()
         return min_v, max_v
-    campos_rango = ['pezuñas', 'ubres_pezones', 'ap_delanteros', 'garrones', 'ap_traseros', 'articulacion']
+    campos_rango = ['pezuñas', 'ubres_pezones', 'ap_delanteros', 'curv_garrones', 'ap_traseros', 'articulacion']
     for campo in campos_rango:
         min_v, max_v = get_range_val(campo)
         if min_v: query = query.filter(getattr(Animal, campo) >= min_v)
@@ -431,5 +432,6 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
 
 
