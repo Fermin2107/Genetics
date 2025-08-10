@@ -51,8 +51,8 @@ class Animal(db.Model):
     familia = db.Column(db.String(100))
     f = db.Column(db.String(20))
     tamano = db.Column(db.String(30))
-    pezuñas = db.Column(db.String(20))
-    articulacion = db.Column(db.String(20))
+    pezuñas = db.Column(db.Float)        # <-- NUMÉRICO
+    articulacion = db.Column(db.Float)   # <-- NUMÉRICO
     ap_delanteros = db.Column(db.String(20))
     ap_traseros = db.Column(db.String(20))
     curv_garrones = db.Column(db.String(20))
@@ -60,7 +60,7 @@ class Animal(db.Model):
     ubres_pezones = db.Column(db.String(20))
     forma_testicular = db.Column(db.String(20))
     desplazamiento = db.Column(db.String(20))
-    clase = db.Column(db.String(30))
+    clase = db.Column(db.Float)          # <-- NUMÉRICO
     impresion_general = db.Column(db.String(100))
     musculatura = db.Column(db.String(20))
     anchura = db.Column(db.String(20))
@@ -89,7 +89,7 @@ class Animal(db.Model):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Helper para procesar decimales correctamente (ahora acepta letras, puntos, comas, cualquier string)
+# Helper para decimales/texto
 def fix_decimal(val):
     val = (val or '').strip()
     return val.replace(',', '.') if val else None
@@ -191,18 +191,23 @@ def ver_raza(raza_id):
     if sexo:
         query = query.filter_by(sexo=sexo)
 
-    # Filtrado por rango con query como argumento
-    def filtrar_rango(query, campo):
+    def filtrar_rango(query, campo, numeric=False):
         min_val = request.args.get(f'{campo}_min')
         max_val = request.args.get(f'{campo}_max')
-        if min_val:
+        if numeric:
+            try:
+                if min_val: min_val = float(min_val.replace(',', '.'))
+                if max_val: max_val = float(max_val.replace(',', '.'))
+            except Exception: min_val = max_val = None
+        if min_val is not None and min_val != '':
             query = query.filter(getattr(Animal, campo) >= min_val)
-        if max_val:
+        if max_val is not None and max_val != '':
             query = query.filter(getattr(Animal, campo) <= max_val)
         return query
 
-    for campo in ['pezuñas', 'ubres_pezones', 'ap_delanteros', 'curv_garrones', 'ap_traseros', 'articulacion']:
-        query = filtrar_rango(query, campo)
+    # Solo filtra por rango los campos numéricos
+    for campo in ['pezuñas', 'articulacion', 'clase']:
+        query = filtrar_rango(query, campo, numeric=True)
 
     orden = request.args.get('orden', 'asc')
     if orden == 'desc':
@@ -223,10 +228,15 @@ def registrar_animal(raza_id):
     raza = Raza.query.filter_by(id=raza_id, user_id=current_user.id).first_or_404()
     if request.method == 'POST':
         data = request.form
-        def get_val(key):
+        def get_val(key, numeric=False):
             val = (data.get(key, '') or '').strip()
             if not val or val.lower() == 'none':
                 return None
+            if numeric:
+                try:
+                    return float(val.replace(',', '.'))
+                except ValueError:
+                    return None
             return val
         def get_date(key):
             val = data.get(key, '').strip()
@@ -255,8 +265,8 @@ def registrar_animal(raza_id):
             familia=get_val('familia'),
             f=get_val('f'),
             tamano=get_val('tamano'),
-            pezuñas=get_val('pezuñas'),
-            articulacion=get_val('articulacion'),
+            pezuñas=get_val('pezuñas', numeric=True),
+            articulacion=get_val('articulacion', numeric=True),
             ap_delanteros=get_val('ap_delanteros'),
             ap_traseros=get_val('ap_traseros'),
             curv_garrones=get_val('curv_garrones'),
@@ -264,7 +274,7 @@ def registrar_animal(raza_id):
             ubres_pezones=get_val('ubres_pezones'),
             forma_testicular=get_val('forma_testicular'),
             desplazamiento=get_val('desplazamiento'),
-            clase=get_val('clase'),
+            clase=get_val('clase', numeric=True),
             impresion_general=get_val('impresion_general'),
             musculatura=get_val('musculatura'),
             anchura=get_val('anchura'),
@@ -309,15 +319,23 @@ def buscar_animales(raza_id):
     if madre: query = query.filter(Animal.madre.ilike(f'%{madre}%'))
     sexo = filtros.get('sexo', '').strip()
     if sexo: query = query.filter(Animal.sexo.ilike(sexo))
-    def get_range_val(campo):
+
+    def get_range_val(campo, numeric=False):
         min_v = filtros.get(f'{campo}_min', '').strip()
         max_v = filtros.get(f'{campo}_max', '').strip()
+        if numeric:
+            try:
+                if min_v: min_v = float(min_v.replace(',', '.'))
+                if max_v: max_v = float(max_v.replace(',', '.'))
+            except Exception: min_v = max_v = None
         return min_v, max_v
-    campos_rango = ['pezuñas', 'ubres_pezones', 'ap_delanteros', 'curv_garrones', 'ap_traseros', 'articulacion']
-    for campo in campos_rango:
-        min_v, max_v = get_range_val(campo)
-        if min_v: query = query.filter(getattr(Animal, campo) >= min_v)
-        if max_v: query = query.filter(getattr(Animal, campo) <= max_v)
+
+    # Solo rango en los campos numéricos
+    for campo in ['pezuñas', 'articulacion', 'clase']:
+        min_v, max_v = get_range_val(campo, numeric=True)
+        if min_v not in (None, ''): query = query.filter(getattr(Animal, campo) >= min_v)
+        if max_v not in (None, ''): query = query.filter(getattr(Animal, campo) <= max_v)
+
     fecha_min = filtros.get('fecha_nac_min', '').strip()
     fecha_max = filtros.get('fecha_nac_max', '').strip()
     try:
@@ -362,10 +380,15 @@ def editar_animal(id):
     raza = animal.raza
     if request.method == 'POST':
         data = request.form
-        def get_val(key):
+        def get_val(key, numeric=False):
             val = (data.get(key, '') or '').strip()
             if not val or val.lower() == 'none':
                 return None
+            if numeric:
+                try:
+                    return float(val.replace(',', '.'))
+                except ValueError:
+                    return None
             return val
         def get_date(key):
             val = data.get(key, '').strip()
@@ -385,8 +408,8 @@ def editar_animal(id):
         animal.familia = get_val('familia')
         animal.f = get_val('f')
         animal.tamano = get_val('tamano')
-        animal.pezuñas = get_val('pezuñas')
-        animal.articulacion = get_val('articulacion')
+        animal.pezuñas = get_val('pezuñas', numeric=True)
+        animal.articulacion = get_val('articulacion', numeric=True)
         animal.ap_delanteros = get_val('ap_delanteros')
         animal.ap_traseros = get_val('ap_traseros')
         animal.curv_garrones = get_val('curv_garrones')
@@ -394,7 +417,7 @@ def editar_animal(id):
         animal.ubres_pezones = get_val('ubres_pezones')
         animal.forma_testicular = get_val('forma_testicular')
         animal.desplazamiento = get_val('desplazamiento')
-        animal.clase = get_val('clase')
+        animal.clase = get_val('clase', numeric=True)
         animal.impresion_general = get_val('impresion_general')
         animal.musculatura = get_val('musculatura')
         animal.anchura = get_val('anchura')
@@ -438,5 +461,3 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
-
-
