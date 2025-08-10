@@ -201,7 +201,6 @@ def ver_raza(raza_id):
             query = query.filter(getattr(Animal, campo) <= max_val)
         return query
 
-    # Asegúrate de usar los nombres correctos de los campos en la base de datos/modelo Animal
     for campo in ['pezuñas', 'ubres_pezones', 'ap_delanteros', 'curv_garrones', 'ap_traseros', 'articulacion']:
         query = filtrar_rango(query, campo)
 
@@ -225,7 +224,10 @@ def registrar_animal(raza_id):
     if request.method == 'POST':
         data = request.form
         def get_val(key):
-            return (data.get(key, '') or '').strip() or None
+            val = (data.get(key, '') or '').strip()
+            if not val or val.lower() == 'none':
+                return None
+            return val
         def get_date(key):
             val = data.get(key, '').strip()
             try: return datetime.strptime(val, '%Y-%m-%d') if val else None
@@ -360,7 +362,11 @@ def editar_animal(id):
     raza = animal.raza
     if request.method == 'POST':
         data = request.form
-        def get_val(key): return (data.get(key, '') or '').strip() or None
+        def get_val(key):
+            val = (data.get(key, '') or '').strip()
+            if not val or val.lower() == 'none':
+                return None
+            return val
         def get_date(key):
             val = data.get(key, '').strip()
             try: return datetime.strptime(val, '%Y-%m-%d') if val else None
@@ -432,6 +438,5 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
-
 
 
