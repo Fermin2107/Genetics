@@ -89,6 +89,11 @@ class Animal(db.Model):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+# Helper para procesar decimales correctamente
+def fix_decimal(val):
+    val = (val or '').strip()
+    return val.replace(',', '.') if val else None
+
 # RUTAS DE USUARIO
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -186,13 +191,12 @@ def ver_raza(raza_id):
     if sexo:
         query = query.filter_by(sexo=sexo)
     def filtrar_rango(campo):
-        min_val = request.args.get(f'{campo}_min')
-        max_val = request.args.get(f'{campo}_max')
+        min_val = fix_decimal(request.args.get(f'{campo}_min'))
+        max_val = fix_decimal(request.args.get(f'{campo}_max'))
         if min_val:
             query = query.filter(getattr(Animal, campo) >= min_val)
         if max_val:
             query = query.filter(getattr(Animal, campo) <= max_val)
-    # filtra por los campos que pueden tener rango
     for campo in ['pezuñas', 'ubres_pezones', 'ap_delanteros', 'garrones', 'ap_traseros', 'articulacion']:
         filtrar_rango(campo)
     orden = request.args.get('orden', 'asc')
@@ -209,9 +213,8 @@ def registrar_animal(raza_id):
     raza = Raza.query.filter_by(id=raza_id, user_id=current_user.id).first_or_404()
     if request.method == 'POST':
         data = request.form
-        # Todos los campos aceptan letras, números, decimales y símbolos
         def get_val(key):
-            return data.get(key, '').strip() or None
+            return fix_decimal(data.get(key, '')) or None
         def get_date(key):
             val = data.get(key, '').strip()
             try: return datetime.strptime(val, '%Y-%m-%d') if val else None
@@ -294,7 +297,9 @@ def buscar_animales(raza_id):
     sexo = filtros.get('sexo', '').strip()
     if sexo: query = query.filter(Animal.sexo.ilike(sexo))
     def get_range_val(campo):
-        return filtros.get(f'{campo}_min', '').strip(), filtros.get(f'{campo}_max', '').strip()
+        min_v = fix_decimal(filtros.get(f'{campo}_min', '').strip())
+        max_v = fix_decimal(filtros.get(f'{campo}_max', '').strip())
+        return min_v, max_v
     campos_rango = ['pezuñas', 'ubres_pezones', 'ap_delanteros', 'garrones', 'ap_traseros', 'articulacion']
     for campo in campos_rango:
         min_v, max_v = get_range_val(campo)
@@ -336,7 +341,7 @@ def editar_animal(id):
     raza = animal.raza
     if request.method == 'POST':
         data = request.form
-        def get_val(key): return data.get(key, '').strip() or None
+        def get_val(key): return fix_decimal(data.get(key, '')) or None
         def get_date(key):
             val = data.get(key, '').strip()
             try: return datetime.strptime(val, '%Y-%m-%d') if val else None
@@ -408,3 +413,4 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
