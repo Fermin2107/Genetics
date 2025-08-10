@@ -1,4 +1,3 @@
-```html name=templates/raza.html
 {% extends "base.html" %}
 {% block content %}
 <h1 class="mt-4 mb-3">Animales de la raza: {{ raza.nombre }}</h1>
@@ -28,40 +27,40 @@
   </div>
   <!-- Campos de rango: pezuñas, manos, garrones, patas_atras, articulacion, ubres_pezones -->
   <div class="col-auto">
-    <input type="number" name="pezuñas_min" class="form-control" placeholder="Pezuñas mín" value="{{ request.args.get('pezuñas_min', '') }}">
+    <input type="text" name="pezuñas_min" class="form-control" placeholder="Pezuñas mín" value="{{ request.args.get('pezuñas_min', '') }}">
   </div>
   <div class="col-auto">
-    <input type="number" name="pezuñas_max" class="form-control" placeholder="Pezuñas máx" value="{{ request.args.get('pezuñas_max', '') }}">
+    <input type="text" name="pezuñas_max" class="form-control" placeholder="Pezuñas máx" value="{{ request.args.get('pezuñas_max', '') }}">
   </div>
   <div class="col-auto">
-    <input type="number" name="manos_min" class="form-control" placeholder="Manos mín" value="{{ request.args.get('manos_min', '') }}">
+    <input type="text" name="manos_min" class="form-control" placeholder="Manos mín" value="{{ request.args.get('manos_min', '') }}">
   </div>
   <div class="col-auto">
-    <input type="number" name="manos_max" class="form-control" placeholder="Manos máx" value="{{ request.args.get('manos_max', '') }}">
+    <input type="text" name="manos_max" class="form-control" placeholder="Manos máx" value="{{ request.args.get('manos_max', '') }}">
   </div>
   <div class="col-auto">
-    <input type="number" name="garrones_min" class="form-control" placeholder="Garrones mín" value="{{ request.args.get('garrones_min', '') }}">
+    <input type="text" name="garrones_min" class="form-control" placeholder="Garrones mín" value="{{ request.args.get('garrones_min', '') }}">
   </div>
   <div class="col-auto">
-    <input type="number" name="garrones_max" class="form-control" placeholder="Garrones máx" value="{{ request.args.get('garrones_max', '') }}">
+    <input type="text" name="garrones_max" class="form-control" placeholder="Garrones máx" value="{{ request.args.get('garrones_max', '') }}">
   </div>
   <div class="col-auto">
-    <input type="number" name="patas_atras_min" class="form-control" placeholder="Patas Atrás mín" value="{{ request.args.get('patas_atras_min', '') }}">
+    <input type="text" name="patas_atras_min" class="form-control" placeholder="Patas Atrás mín" value="{{ request.args.get('patas_atras_min', '') }}">
   </div>
   <div class="col-auto">
-    <input type="number" name="patas_atras_max" class="form-control" placeholder="Patas Atrás máx" value="{{ request.args.get('patas_atras_max', '') }}">
+    <input type="text" name="patas_atras_max" class="form-control" placeholder="Patas Atrás máx" value="{{ request.args.get('patas_atras_max', '') }}">
   </div>
   <div class="col-auto">
-    <input type="number" name="articulacion_min" class="form-control" placeholder="Articulación mín" value="{{ request.args.get('articulacion_min', '') }}">
+    <input type="text" name="articulacion_min" class="form-control" placeholder="Articulación mín" value="{{ request.args.get('articulacion_min', '') }}">
   </div>
   <div class="col-auto">
-    <input type="number" name="articulacion_max" class="form-control" placeholder="Articulación máx" value="{{ request.args.get('articulacion_max', '') }}">
+    <input type="text" name="articulacion_max" class="form-control" placeholder="Articulación máx" value="{{ request.args.get('articulacion_max', '') }}">
   </div>
   <div class="col-auto">
-    <input type="number" name="ubres_pezones_min" class="form-control" placeholder="Ubres/Pezones mín" value="{{ request.args.get('ubres_pezones_min', '') }}">
+    <input type="text" name="ubres_pezones_min" class="form-control" placeholder="Ubres/Pezones mín" value="{{ request.args.get('ubres_pezones_min', '') }}">
   </div>
   <div class="col-auto">
-    <input type="number" name="ubres_pezones_max" class="form-control" placeholder="Ubres/Pezones máx" value="{{ request.args.get('ubres_pezones_max', '') }}">
+    <input type="text" name="ubres_pezones_max" class="form-control" placeholder="Ubres/Pezones máx" value="{{ request.args.get('ubres_pezones_max', '') }}">
   </div>
   <div class="col-auto">
     <select name="sexo" class="form-select">
@@ -99,17 +98,14 @@
     <tbody>
       {% for animal in animales %}
       <tr>
-        <!-- RP: enlace a ficha -->
         <td>
           <a href="{{ url_for('ficha_animal', id=animal.id) }}">{{ animal.rp }}</a>
         </td>
-        <!-- Nombre: enlace a ficha -->
         <td>
           <a href="{{ url_for('ficha_animal', id=animal.id) }}">{{ animal.nombre }}</a>
         </td>
         <td>{{ animal.sexo }}</td>
         <td>{% if animal.fecha_nac %}{{ animal.fecha_nac.strftime('%Y-%m-%d') }}{% endif %}</td>
-        <!-- Padre: enlace si coincide por RP o Nombre -->
         <td>
           {% set padre = animales|selectattr("rp", "equalto", animal.padre)|first or animales|selectattr("nombre", "equalto", animal.padre)|first %}
           {% if padre %}
@@ -118,7 +114,6 @@
             {{ animal.padre }}
           {% endif %}
         </td>
-        <!-- Madre: enlace si coincide por RP o Nombre -->
         <td>
           {% set madre = animales|selectattr("rp", "equalto", animal.madre)|first or animales|selectattr("nombre", "equalto", animal.madre)|first %}
           {% if madre %}
@@ -127,7 +122,6 @@
             {{ animal.madre }}
           {% endif %}
         </td>
-        <!-- Acciones -->
         <td>
           <a href="{{ url_for('ficha_animal', id=animal.id) }}" class="btn btn-sm btn-info">Ver</a>
           <a href="{{ url_for('editar_animal', id=animal.id) }}" class="btn btn-sm btn-warning">Editar</a>
@@ -142,4 +136,3 @@
 </div>
 <a href="{{ url_for('razas') }}" class="btn btn-secondary mt-3">Volver a Razas</a>
 {% endblock %}
-```
