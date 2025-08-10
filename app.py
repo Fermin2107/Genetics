@@ -16,7 +16,7 @@ login_manager.login_view = 'login'
 # MODELOS
 
 class User(UserMixin, db.Model):
-    __tablename__ = 'users' # <-- evita palabra reservada
+    __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
@@ -37,30 +37,39 @@ class Raza(db.Model):
 class Animal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     raza_id = db.Column(db.Integer, db.ForeignKey('raza.id'), nullable=False)
-    rp = db.Column(db.String(20), nullable=False)
-    nombre = db.Column(db.String(100))
-    fecha_nac = db.Column(db.Date)
+    rp = db.Column(db.String(50), nullable=False)
     hba = db.Column(db.String(50))
+    nombre = db.Column(db.String(100))
     sexo = db.Column(db.String(10))
+    fecha_nac = db.Column(db.Date)
+    nacimiento = db.Column(db.String(10))
     color = db.Column(db.String(50))
     padre = db.Column(db.String(100))
     madre = db.Column(db.String(100))
     abuelo_paterno = db.Column(db.String(100))
     abuelo_materno = db.Column(db.String(100))
-    nacimiento = db.Column(db.String(10))
-    val_14m = db.Column(db.String(100))
-    val_18m = db.Column(db.String(100))
-    val_ternero = db.Column(db.String(100))
-    val_adulto = db.Column(db.String(100))
-    pezuñas = db.Column(db.Integer)
-    articulacion = db.Column(db.Integer)
-    garrones = db.Column(db.Integer)
-    patas_atras = db.Column(db.Integer)
-    manos = db.Column(db.Integer)
-    ce = db.Column(db.Float)
-    ubres_pezones = db.Column(db.Integer)
-    comentarios = db.Column(db.Text)
+    familia = db.Column(db.String(100))
+    f = db.Column(db.String(20))
+    tamano = db.Column(db.String(30))
+    pezuñas = db.Column(db.String(20))
+    articulacion = db.Column(db.String(20))
+    ap_delanteros = db.Column(db.String(20))
+    ap_traseros = db.Column(db.String(20))
+    curv_garrones = db.Column(db.String(20))
+    apert_posterior = db.Column(db.String(20))
+    ubres_pezones = db.Column(db.String(20))
+    forma_testicular = db.Column(db.String(20))
+    desplazamiento = db.Column(db.String(20))
+    clase = db.Column(db.String(30))
+    impresion_general = db.Column(db.String(100))
+    musculatura = db.Column(db.String(20))
+    anchura = db.Column(db.String(20))
+    costilla = db.Column(db.String(20))
+    docilidad = db.Column(db.String(20))
+    valoracion = db.Column(db.String(50))
+    observaciones = db.Column(db.Text)
     premios = db.Column(db.Text)
+    # EPDs
     epd_nac = db.Column(db.String(50))
     epd_dest = db.Column(db.String(50))
     epd_leche = db.Column(db.String(50))
@@ -70,6 +79,10 @@ class Animal(db.Model):
     epd_aob = db.Column(db.String(50))
     epd_egs = db.Column(db.String(50))
     epd_marb = db.Column(db.String(50))
+    val_14m = db.Column(db.String(100))
+    val_18m = db.Column(db.String(100))
+    val_ternero = db.Column(db.String(100))
+    val_adulto = db.Column(db.String(100))
     __table_args__ = (db.UniqueConstraint('rp', 'raza_id', name='uq_animal_rp_raza'),)
 
 @login_manager.user_loader
@@ -176,12 +189,11 @@ def ver_raza(raza_id):
         min_val = request.args.get(f'{campo}_min')
         max_val = request.args.get(f'{campo}_max')
         if min_val:
-            try: query = query.filter(getattr(Animal, campo) >= int(min_val))
-            except ValueError: pass
+            query = query.filter(getattr(Animal, campo) >= min_val)
         if max_val:
-            try: query = query.filter(getattr(Animal, campo) <= int(max_val))
-            except ValueError: pass
-    for campo in ['pezuñas', 'ubres_pezones', 'manos', 'garrones', 'patas_atras', 'articulacion']:
+            query = query.filter(getattr(Animal, campo) <= max_val)
+    # filtra por los campos que pueden tener rango
+    for campo in ['pezuñas', 'ubres_pezones', 'ap_delanteros', 'garrones', 'ap_traseros', 'articulacion']:
         filtrar_rango(campo)
     orden = request.args.get('orden', 'asc')
     if orden == 'desc':
@@ -197,21 +209,14 @@ def registrar_animal(raza_id):
     raza = Raza.query.filter_by(id=raza_id, user_id=current_user.id).first_or_404()
     if request.method == 'POST':
         data = request.form
-        def get_val(key, tipo='str'):
-            val = data.get(key, '').strip()
-            if tipo == 'upper' and val: return val.upper()
-            if tipo == 'int' and val:
-                try: v = int(val); return v if v >= 0 else None
-                except ValueError: flash(f'El valor de {key} debe ser numérico.', 'danger'); return None
-            if tipo == 'float' and val:
-                try: v = float(val); return v if v >= 0 else None
-                except ValueError: flash(f'El valor de {key} debe ser decimal.', 'danger'); return None
-            return val if val else None
+        # Todos los campos aceptan letras, números, decimales y símbolos
+        def get_val(key):
+            return data.get(key, '').strip() or None
         def get_date(key):
             val = data.get(key, '').strip()
             try: return datetime.strptime(val, '%Y-%m-%d') if val else None
             except ValueError: flash(f'Formato de fecha incorrecto para {key}.', 'danger'); return None
-        rp = get_val('rp', 'upper')
+        rp = get_val('rp')
         if not rp:
             flash('El RP es obligatorio.', 'danger')
             return render_template('registrar.html', raza=raza)
@@ -221,28 +226,36 @@ def registrar_animal(raza_id):
         nuevo_animal = Animal(
             raza_id=raza.id,
             rp=rp,
-            nombre=get_val('nombre', 'upper'),
-            fecha_nac=get_date('fecha_nacimiento'),
             hba=get_val('hba'),
+            nombre=get_val('nombre'),
             sexo=get_val('sexo'),
-            color=get_val('color'),
-            padre=get_val('padre', 'upper'),
-            madre=get_val('madre', 'upper'),
-            abuelo_paterno=get_val('abuelo_paterno', 'upper'),
-            abuelo_materno=get_val('abuelo_materno', 'upper'),
+            fecha_nac=get_date('fecha_nac'),
             nacimiento=get_val('nacimiento'),
-            val_14m=get_val('val_14m'),
-            val_18m=get_val('val_18m'),
-            val_ternero=get_val('val_ternero'),
-            val_adulto=get_val('val_adulto'),
-            pezuñas=get_val('pezuñas', 'int'),
-            articulacion=get_val('articulacion', 'int'),
-            garrones=get_val('garrones', 'int'),
-            patas_atras=get_val('patas_atras', 'int'),
-            manos=get_val('manos', 'int'),
-            ce=get_val('ce', 'float'),
-            ubres_pezones=get_val('ubres_pezones', 'int'),
-            comentarios=get_val('comentarios'),
+            color=get_val('color'),
+            padre=get_val('padre'),
+            madre=get_val('madre'),
+            abuelo_paterno=get_val('abuelo_paterno'),
+            abuelo_materno=get_val('abuelo_materno'),
+            familia=get_val('familia'),
+            f=get_val('f'),
+            tamano=get_val('tamano'),
+            pezuñas=get_val('pezuñas'),
+            articulacion=get_val('articulacion'),
+            ap_delanteros=get_val('ap_delanteros'),
+            ap_traseros=get_val('ap_traseros'),
+            curv_garrones=get_val('curv_garrones'),
+            apert_posterior=get_val('apert_posterior'),
+            ubres_pezones=get_val('ubres_pezones'),
+            forma_testicular=get_val('forma_testicular'),
+            desplazamiento=get_val('desplazamiento'),
+            clase=get_val('clase'),
+            impresion_general=get_val('impresion_general'),
+            musculatura=get_val('musculatura'),
+            anchura=get_val('anchura'),
+            costilla=get_val('costilla'),
+            docilidad=get_val('docilidad'),
+            valoracion=get_val('valoracion'),
+            observaciones=get_val('observaciones'),
             premios=get_val('premios'),
             epd_nac=get_val('epd_nac'),
             epd_dest=get_val('epd_dest'),
@@ -252,7 +265,11 @@ def registrar_animal(raza_id):
             epd_ce=get_val('epd_ce'),
             epd_aob=get_val('epd_aob'),
             epd_egs=get_val('epd_egs'),
-            epd_marb=get_val('epd_marb')
+            epd_marb=get_val('epd_marb'),
+            val_14m=get_val('val_14m'),
+            val_18m=get_val('val_18m'),
+            val_ternero=get_val('val_ternero'),
+            val_adulto=get_val('val_adulto')
         )
         db.session.add(nuevo_animal)
         db.session.commit()
@@ -278,12 +295,12 @@ def buscar_animales(raza_id):
     if sexo: query = query.filter(Animal.sexo.ilike(sexo))
     def get_range_val(campo):
         return filtros.get(f'{campo}_min', '').strip(), filtros.get(f'{campo}_max', '').strip()
-    campos_rango = ['pezuñas', 'ubres_pezones', 'manos', 'garrones', 'patas_atras', 'articulacion']
+    campos_rango = ['pezuñas', 'ubres_pezones', 'ap_delanteros', 'garrones', 'ap_traseros', 'articulacion']
     for campo in campos_rango:
         min_v, max_v = get_range_val(campo)
         try:
-            if min_v: query = query.filter(getattr(Animal, campo) >= int(min_v))
-            if max_v: query = query.filter(getattr(Animal, campo) <= int(max_v))
+            if min_v: query = query.filter(getattr(Animal, campo) >= min_v)
+            if max_v: query = query.filter(getattr(Animal, campo) <= max_v)
         except ValueError: pass
     fecha_min = filtros.get('fecha_nac_min', '').strip()
     fecha_max = filtros.get('fecha_nac_max', '').strip()
@@ -319,43 +336,42 @@ def editar_animal(id):
     raza = animal.raza
     if request.method == 'POST':
         data = request.form
-        def get_val(key, tipo='str'):
-            val = data.get(key, '').strip()
-            if tipo == 'upper' and val: return val.upper()
-            if tipo == 'int' and val:
-                try: v = int(val); return v if v >= 0 else None
-                except ValueError: flash(f'El valor de {key} debe ser numérico.', 'danger'); return None
-            if tipo == 'float' and val:
-                try: v = float(val); return v if v >= 0 else None
-                except ValueError: flash(f'El valor de {key} debe ser decimal.', 'danger'); return None
-            return val if val else None
+        def get_val(key): return data.get(key, '').strip() or None
         def get_date(key):
             val = data.get(key, '').strip()
             try: return datetime.strptime(val, '%Y-%m-%d') if val else None
             except: flash(f'Formato de fecha incorrecto para {key}.', 'danger'); return None
-        animal.rp = get_val('rp', 'upper')
-        animal.nombre = get_val('nombre', 'upper')
-        animal.fecha_nac = get_date('fecha_nacimiento')
+        animal.rp = get_val('rp')
         animal.hba = get_val('hba')
+        animal.nombre = get_val('nombre')
         animal.sexo = get_val('sexo')
-        animal.color = get_val('color')
-        animal.padre = get_val('padre', 'upper')
-        animal.madre = get_val('madre', 'upper')
-        animal.abuelo_paterno = get_val('abuelo_paterno', 'upper')
-        animal.abuelo_materno = get_val('abuelo_materno', 'upper')
+        animal.fecha_nac = get_date('fecha_nac')
         animal.nacimiento = get_val('nacimiento')
-        animal.val_14m = get_val('val_14m')
-        animal.val_18m = get_val('val_18m')
-        animal.val_ternero = get_val('val_ternero')
-        animal.val_adulto = get_val('val_adulto')
-        animal.pezuñas = get_val('pezuñas', 'int')
-        animal.articulacion = get_val('articulacion', 'int')
-        animal.garrones = get_val('garrones', 'int')
-        animal.patas_atras = get_val('patas_atras', 'int')
-        animal.manos = get_val('manos', 'int')
-        animal.ce = get_val('ce', 'float')
-        animal.ubres_pezones = get_val('ubres_pezones', 'int')
-        animal.comentarios = get_val('comentarios')
+        animal.color = get_val('color')
+        animal.padre = get_val('padre')
+        animal.madre = get_val('madre')
+        animal.abuelo_paterno = get_val('abuelo_paterno')
+        animal.abuelo_materno = get_val('abuelo_materno')
+        animal.familia = get_val('familia')
+        animal.f = get_val('f')
+        animal.tamano = get_val('tamano')
+        animal.pezuñas = get_val('pezuñas')
+        animal.articulacion = get_val('articulacion')
+        animal.ap_delanteros = get_val('ap_delanteros')
+        animal.ap_traseros = get_val('ap_traseros')
+        animal.curv_garrones = get_val('curv_garrones')
+        animal.apert_posterior = get_val('apert_posterior')
+        animal.ubres_pezones = get_val('ubres_pezones')
+        animal.forma_testicular = get_val('forma_testicular')
+        animal.desplazamiento = get_val('desplazamiento')
+        animal.clase = get_val('clase')
+        animal.impresion_general = get_val('impresion_general')
+        animal.musculatura = get_val('musculatura')
+        animal.anchura = get_val('anchura')
+        animal.costilla = get_val('costilla')
+        animal.docilidad = get_val('docilidad')
+        animal.valoracion = get_val('valoracion')
+        animal.observaciones = get_val('observaciones')
         animal.premios = get_val('premios')
         animal.epd_nac = get_val('epd_nac')
         animal.epd_dest = get_val('epd_dest')
@@ -366,6 +382,10 @@ def editar_animal(id):
         animal.epd_aob = get_val('epd_aob')
         animal.epd_egs = get_val('epd_egs')
         animal.epd_marb = get_val('epd_marb')
+        animal.val_14m = get_val('val_14m')
+        animal.val_18m = get_val('val_18m')
+        animal.val_ternero = get_val('val_ternero')
+        animal.val_adulto = get_val('val_adulto')
         db.session.commit()
         flash('Animal actualizado correctamente.', 'success')
         return redirect(url_for('ficha_animal', id=animal.id))
@@ -386,14 +406,5 @@ def eliminar_animal(id):
 
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()  # <-- crea todas las tablas desde cero
+        db.create_all()
     app.run(debug=True)
-
-
-
-
-
-
-
-
-
