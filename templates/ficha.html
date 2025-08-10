@@ -1,46 +1,69 @@
 {% extends 'base.html' %}
 {% block title %}Ficha Animal {{ animal.rp }}{% endblock %}
 {% block content %}
-<h2>Ficha de Animal</h2>
-<table class="table table-bordered">
-    <tr><th>RP</th><td>{{ animal.rp }}</td></tr>
-    <tr><th>Nombre</th><td>{{ animal.nombre }}</td></tr>
-    <tr><th>Sexo</th><td>{{ animal.sexo }}</td></tr>
-    <tr><th>Raza</th><td>{{ animal.raza.nombre }}</td></tr>
-    <tr><th>Fecha Nacimiento</th><td>{{ animal.fecha_nac.strftime('%Y-%m-%d') if animal.fecha_nac }}</td></tr>
-    <tr><th>Color</th><td>{{ animal.color }}</td></tr>
-    <tr><th>Padre</th><td>{{ animal.padre }}</td></tr>
-    <tr><th>Madre</th><td>{{ animal.madre }}</td></tr>
-    <tr><th>Abuelo Paterno</th><td>{{ animal.abuelo_paterno }}</td></tr>
-    <tr><th>Abuelo Materno</th><td>{{ animal.abuelo_materno }}</td></tr>
-    <tr><th>HBA</th><td>{{ animal.hba }}</td></tr>
-    <tr><th>Nacimiento</th><td>{{ animal.nacimiento }}</td></tr>
-    <tr><th>Val 14m</th><td>{{ animal.val_14m }}</td></tr>
-    <tr><th>Val 18m</th><td>{{ animal.val_18m }}</td></tr>
-    <tr><th>Val Ternero</th><td>{{ animal.val_ternero }}</td></tr>
-    <tr><th>Val Adulto</th><td>{{ animal.val_adulto }}</td></tr>
-    <tr><th>Pezuñas</th><td>{{ animal.pezuñas }}</td></tr>
-    <tr><th>Articulación</th><td>{{ animal.articulacion }}</td></tr>
-    <tr><th>Garrones</th><td>{{ animal.garrones }}</td></tr>
-    <tr><th>Patas Atrás</th><td>{{ animal.patas_atras }}</td></tr>
-    <tr><th>Manos</th><td>{{ animal.manos }}</td></tr>
-    <tr><th>CE (cm)</th><td>{{ animal.ce }}</td></tr>
-    <tr><th>Ubres/Pezones</th><td>{{ animal.ubres_pezones }}</td></tr>
-    <tr><th>Comentarios</th><td>{{ animal.comentarios }}</td></tr>
-    <tr><th>Premios</th><td>{{ animal.premios }}</td></tr>
-    <tr><th>EPD Nac</th><td>{{ animal.epd_nac }}</td></tr>
-    <tr><th>EPD Dest</th><td>{{ animal.epd_dest }}</td></tr>
-    <tr><th>EPD Leche</th><td>{{ animal.epd_leche }}</td></tr>
-    <tr><th>EPD 18m</th><td>{{ animal.epd_18m }}</td></tr>
-    <tr><th>EPD PaV</th><td>{{ animal.epd_pa_v }}</td></tr>
-    <tr><th>EPD CE</th><td>{{ animal.epd_ce }}</td></tr>
-    <tr><th>EPD AOB</th><td>{{ animal.epd_aob }}</td></tr>
-    <tr><th>EPD EGS</th><td>{{ animal.epd_egs }}</td></tr>
-    <tr><th>EPD MARB</th><td>{{ animal.epd_marb }}</td></tr>
+<h2>Ficha Animal: {{ animal.rp }}</h2>
+<table class="table table-bordered table-striped align-middle">
+    <tbody>
+        <tr><th>RP</th><td>{{ animal.rp }}</td></tr>
+        <tr><th>HBA</th><td>{{ animal.hba }}</td></tr>
+        <tr><th>Nombre</th><td>{{ animal.nombre }}</td></tr>
+        <tr><th>Sexo</th><td>{{ animal.sexo }}</td></tr>
+        <tr><th>Fecha nacimiento</th><td>{{ animal.fecha_nac }}</td></tr>
+        <tr><th>Nacimiento</th><td>{{ animal.nacimiento }}</td></tr>
+        <tr><th>Color</th><td>{{ animal.color }}</td></tr>
+        <tr><th>Padre</th><td>{{ animal.padre }}</td></tr>
+        <tr><th>Madre</th><td>{{ animal.madre }}</td></tr>
+        <tr><th>Abuelo paterno</th><td>{{ animal.abuelo_paterno }}</td></tr>
+        <tr><th>Abuelo materno</th><td>{{ animal.abuelo_materno }}</td></tr>
+        <tr><th>Familia</th><td>{{ animal.familia }}</td></tr>
+        <tr><th>F</th><td>{{ animal.f }}</td></tr>
+        <tr><th>Tamaño</th><td>{{ animal.tamano }}</td></tr>
+        <tr><th>Pezuñas</th><td>{{ animal.pezuñas }}</td></tr>
+        <tr><th>Articulación</th><td>{{ animal.articulacion }}</td></tr>
+        <tr><th>Aplomos delanteros</th><td>{{ animal.ap_delanteros }}</td></tr>
+        <tr><th>Aplomos traseros</th><td>{{ animal.ap_traseros }}</td></tr>
+        <tr><th>Curvatura garrones</th><td>{{ animal.curv_garrones }}</td></tr>
+        <tr><th>Apertura posterior</th><td>{{ animal.apert_posterior }}</td></tr>
+        <tr><th>Ubres y pezones</th><td>{{ animal.ubres_pezones }}</td></tr>
+        <tr><th>Forma testicular</th><td>{{ animal.forma_testicular }}</td></tr>
+        <tr><th>Desplazamiento</th><td>{{ animal.desplazamiento }}</td></tr>
+        <tr><th>Clase</th><td>{{ animal.clase }}</td></tr>
+        <tr><th>Impresión general</th><td>{{ animal.impresion_general }}</td></tr>
+        <tr><th>Musculatura</th><td>{{ animal.musculatura }}</td></tr>
+        <tr><th>Anchura</th><td>{{ animal.anchura }}</td></tr>
+        <tr><th>Costilla</th><td>{{ animal.costilla }}</td></tr>
+        <tr><th>Docilidad</th><td>{{ animal.docilidad }}</td></tr>
+        <tr><th>Valoración</th><td>{{ animal.valoracion }}</td></tr>
+        <tr><th>Observaciones</th><td>{{ animal.observaciones }}</td></tr>
+        <tr><th>Premios</th><td>{{ animal.premios }}</td></tr>
+    </tbody>
 </table>
-<div>
+<h4 class="mt-4">EPDs</h4>
+<table class="table table-bordered table-sm">
+    <tbody>
+        <tr><th>EPD Nac</th><td>{{ animal.epd_nac }}</td></tr>
+        <tr><th>EPD Dest</th><td>{{ animal.epd_dest }}</td></tr>
+        <tr><th>EPD Leche</th><td>{{ animal.epd_leche }}</td></tr>
+        <tr><th>EPD 18m</th><td>{{ animal.epd_18m }}</td></tr>
+        <tr><th>EPD PA/V</th><td>{{ animal.epd_pa_v }}</td></tr>
+        <tr><th>EPD CE</th><td>{{ animal.epd_ce }}</td></tr>
+        <tr><th>EPD AOB</th><td>{{ animal.epd_aob }}</td></tr>
+        <tr><th>EPD EGS</th><td>{{ animal.epd_egs }}</td></tr>
+        <tr><th>EPD MARB</th><td>{{ animal.epd_marb }}</td></tr>
+    </tbody>
+</table>
+<h4 class="mt-4">Valoraciones</h4>
+<table class="table table-bordered table-sm">
+    <tbody>
+        <tr><th>Valoración 14m</th><td>{{ animal.val_14m }}</td></tr>
+        <tr><th>Valoración 18m</th><td>{{ animal.val_18m }}</td></tr>
+        <tr><th>Valoración ternero</th><td>{{ animal.val_ternero }}</td></tr>
+        <tr><th>Valoración adulto</th><td>{{ animal.val_adulto }}</td></tr>
+    </tbody>
+</table>
+<div class="mt-3">
     <a class="btn btn-warning" href="{{ url_for('editar_animal', id=animal.id) }}">Editar</a>
-    <form action="{{ url_for('eliminar_animal', id=animal.id) }}" method="post" style="display:inline;" onsubmit="return confirm('¿Eliminar animal {{ animal.rp }}?');">
+    <form method="POST" action="{{ url_for('eliminar_animal', id=animal.id) }}" style="display: inline;" onsubmit="return confirm('¿Seguro que deseas eliminar este animal?');">
         <button type="submit" class="btn btn-danger">Eliminar</button>
     </form>
     <a class="btn btn-secondary" href="{{ url_for('ver_raza', raza_id=animal.raza_id) }}">Volver a la raza</a>
