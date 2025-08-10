@@ -1,144 +1,197 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Registrar animal en la raza: {{ raza.nombre }}</h2>
-<form method="post">
-    <label for="rp">RP:</label>
-    <input type="text" name="rp" id="rp" required>
+<h2 class="mb-4">Registrar animal en la raza: {{ raza.nombre }}</h2>
+<form method="post" class="row g-3">
 
-    <label for="hba">HBA:</label>
-    <input type="text" name="hba" id="hba">
-
-    <label for="nombre">Nombre:</label>
-    <input type="text" name="nombre" id="nombre">
-
-    <label for="sexo">Sexo:</label>
-    <input type="text" name="sexo" id="sexo">
-
-    <label for="fecha_nac">Fecha Nac:</label>
-    <input type="date" name="fecha_nac" id="fecha_nac">
-
-    <label for="nacimiento">Nacimiento:</label>
-    <input type="text" name="nacimiento" id="nacimiento">
-
-    <label for="color">Color:</label>
-    <input type="text" name="color" id="color">
-
-    <label for="padre">Padre:</label>
-    <input type="text" name="padre" id="padre">
-
-    <label for="madre">Madre:</label>
-    <input type="text" name="madre" id="madre">
-
-    <label for="abuelo_paterno">Abuelo paterno:</label>
-    <input type="text" name="abuelo_paterno" id="abuelo_paterno">
-
-    <label for="abuelo_materno">Abuelo materno:</label>
-    <input type="text" name="abuelo_materno" id="abuelo_materno">
-
-    <label for="familia">Familia:</label>
-    <input type="text" name="familia" id="familia">
-
-    <label for="f">F:</label>
-    <input type="text" name="f" id="f">
-
-    <label for="tamano">Tamaño:</label>
-    <input type="text" name="tamano" id="tamano">
+    <div class="col-md-2">
+        <label for="rp" class="form-label">RP</label>
+        <input type="text" class="form-control" name="rp" id="rp" required>
+    </div>
+    <div class="col-md-2">
+        <label for="hba" class="form-label">HBA</label>
+        <input type="text" class="form-control" name="hba" id="hba">
+    </div>
+    <div class="col-md-2">
+        <label for="nombre" class="form-label">Nombre</label>
+        <input type="text" class="form-control" name="nombre" id="nombre">
+    </div>
+    <div class="col-md-2">
+        <label for="sexo" class="form-label">Sexo</label>
+        <input type="text" class="form-control" name="sexo" id="sexo">
+    </div>
+    <div class="col-md-2">
+        <label for="fecha_nac" class="form-label">Fecha Nac.</label>
+        <input type="date" class="form-control" name="fecha_nac" id="fecha_nac">
+    </div>
+    <div class="col-md-2">
+        <label for="nacimiento" class="form-label">Nacimiento</label>
+        <input type="text" class="form-control" name="nacimiento" id="nacimiento">
+    </div>
+    <div class="col-md-2">
+        <label for="color" class="form-label">Color</label>
+        <input type="text" class="form-control" name="color" id="color">
+    </div>
+    <div class="col-md-2">
+        <label for="padre" class="form-label">Padre</label>
+        <input type="text" class="form-control" name="padre" id="padre">
+    </div>
+    <div class="col-md-2">
+        <label for="madre" class="form-label">Madre</label>
+        <input type="text" class="form-control" name="madre" id="madre">
+    </div>
+    <div class="col-md-2">
+        <label for="abuelo_paterno" class="form-label">Abuelo paterno</label>
+        <input type="text" class="form-control" name="abuelo_paterno" id="abuelo_paterno">
+    </div>
+    <div class="col-md-2">
+        <label for="abuelo_materno" class="form-label">Abuelo materno</label>
+        <input type="text" class="form-control" name="abuelo_materno" id="abuelo_materno">
+    </div>
+    <div class="col-md-2">
+        <label for="familia" class="form-label">Familia</label>
+        <input type="text" class="form-control" name="familia" id="familia">
+    </div>
+    <div class="col-md-2">
+        <label for="f" class="form-label">F</label>
+        <input type="text" class="form-control" name="f" id="f">
+    </div>
+    <div class="col-md-2">
+        <label for="tamano" class="form-label">Tamaño</label>
+        <input type="text" class="form-control" name="tamano" id="tamano">
+    </div>
 
     <!-- NUMÉRICOS -->
-    <label for="pezuñas">Pezuñas:</label>
-    <input type="number" step="any" name="pezuñas" id="pezuñas">
+    <div class="col-md-2">
+        <label for="pezuñas" class="form-label">Pezuñas</label>
+        <input type="number" step="any" class="form-control" name="pezuñas" id="pezuñas">
+    </div>
+    <div class="col-md-2">
+        <label for="articulacion" class="form-label">Articulación</label>
+        <input type="number" step="any" class="form-control" name="articulacion" id="articulacion">
+    </div>
+    <div class="col-md-2">
+        <label for="clase" class="form-label">Clase</label>
+        <input type="number" step="any" class="form-control" name="clase" id="clase">
+    </div>
 
-    <label for="articulacion">Articulación:</label>
-    <input type="number" step="any" name="articulacion" id="articulacion">
+    <div class="col-md-2">
+        <label for="ap_delanteros" class="form-label">AP Delanteros</label>
+        <input type="text" class="form-control" name="ap_delanteros" id="ap_delanteros">
+    </div>
+    <div class="col-md-2">
+        <label for="ap_traseros" class="form-label">AP Traseros</label>
+        <input type="text" class="form-control" name="ap_traseros" id="ap_traseros">
+    </div>
+    <div class="col-md-2">
+        <label for="curv_garrones" class="form-label">Curv. Garrones</label>
+        <input type="text" class="form-control" name="curv_garrones" id="curv_garrones">
+    </div>
+    <div class="col-md-2">
+        <label for="apert_posterior" class="form-label">Apert. Posterior</label>
+        <input type="text" class="form-control" name="apert_posterior" id="apert_posterior">
+    </div>
+    <div class="col-md-2">
+        <label for="ubres_pezones" class="form-label">Ubres/pezones</label>
+        <input type="text" class="form-control" name="ubres_pezones" id="ubres_pezones">
+    </div>
+    <div class="col-md-2">
+        <label for="forma_testicular" class="form-label">Forma testicular</label>
+        <input type="text" class="form-control" name="forma_testicular" id="forma_testicular">
+    </div>
+    <div class="col-md-2">
+        <label for="desplazamiento" class="form-label">Desplazamiento</label>
+        <input type="text" class="form-control" name="desplazamiento" id="desplazamiento">
+    </div>
+    <div class="col-md-2">
+        <label for="impresion_general" class="form-label">Impresión general</label>
+        <input type="text" class="form-control" name="impresion_general" id="impresion_general">
+    </div>
+    <div class="col-md-2">
+        <label for="musculatura" class="form-label">Musculatura</label>
+        <input type="text" class="form-control" name="musculatura" id="musculatura">
+    </div>
+    <div class="col-md-2">
+        <label for="anchura" class="form-label">Anchura</label>
+        <input type="text" class="form-control" name="anchura" id="anchura">
+    </div>
+    <div class="col-md-2">
+        <label for="costilla" class="form-label">Costilla</label>
+        <input type="text" class="form-control" name="costilla" id="costilla">
+    </div>
+    <div class="col-md-2">
+        <label for="docilidad" class="form-label">Docilidad</label>
+        <input type="text" class="form-control" name="docilidad" id="docilidad">
+    </div>
+    <div class="col-md-2">
+        <label for="valoracion" class="form-label">Valoración</label>
+        <input type="text" class="form-control" name="valoracion" id="valoracion">
+    </div>
+    <div class="col-md-12">
+        <label for="observaciones" class="form-label">Observaciones</label>
+        <textarea class="form-control" name="observaciones" id="observaciones"></textarea>
+    </div>
+    <div class="col-md-12">
+        <label for="premios" class="form-label">Premios</label>
+        <textarea class="form-control" name="premios" id="premios"></textarea>
+    </div>
 
-    <label for="clase">Clase:</label>
-    <input type="number" step="any" name="clase" id="clase">
+    <h3 class="mt-4">EPDs</h3>
+    <div class="col-md-2">
+        <label for="epd_nac" class="form-label">EPD Nac</label>
+        <input type="text" class="form-control" name="epd_nac" id="epd_nac">
+    </div>
+    <div class="col-md-2">
+        <label for="epd_dest" class="form-label">EPD Dest</label>
+        <input type="text" class="form-control" name="epd_dest" id="epd_dest">
+    </div>
+    <div class="col-md-2">
+        <label for="epd_leche" class="form-label">EPD Leche</label>
+        <input type="text" class="form-control" name="epd_leche" id="epd_leche">
+    </div>
+    <div class="col-md-2">
+        <label for="epd_18m" class="form-label">EPD 18m</label>
+        <input type="text" class="form-control" name="epd_18m" id="epd_18m">
+    </div>
+    <div class="col-md-2">
+        <label for="epd_pa_v" class="form-label">EPD PA/V</label>
+        <input type="text" class="form-control" name="epd_pa_v" id="epd_pa_v">
+    </div>
+    <div class="col-md-2">
+        <label for="epd_ce" class="form-label">EPD CE</label>
+        <input type="text" class="form-control" name="epd_ce" id="epd_ce">
+    </div>
+    <div class="col-md-2">
+        <label for="epd_aob" class="form-label">EPD AOB</label>
+        <input type="text" class="form-control" name="epd_aob" id="epd_aob">
+    </div>
+    <div class="col-md-2">
+        <label for="epd_egs" class="form-label">EPD EGS</label>
+        <input type="text" class="form-control" name="epd_egs" id="epd_egs">
+    </div>
+    <div class="col-md-2">
+        <label for="epd_marb" class="form-label">EPD MARB</label>
+        <input type="text" class="form-control" name="epd_marb" id="epd_marb">
+    </div>
+    <div class="col-md-2">
+        <label for="val_14m" class="form-label">Val 14m</label>
+        <input type="text" class="form-control" name="val_14m" id="val_14m">
+    </div>
+    <div class="col-md-2">
+        <label for="val_18m" class="form-label">Val 18m</label>
+        <input type="text" class="form-control" name="val_18m" id="val_18m">
+    </div>
+    <div class="col-md-2">
+        <label for="val_ternero" class="form-label">Val ternero</label>
+        <input type="text" class="form-control" name="val_ternero" id="val_ternero">
+    </div>
+    <div class="col-md-2">
+        <label for="val_adulto" class="form-label">Val adulto</label>
+        <input type="text" class="form-control" name="val_adulto" id="val_adulto">
+    </div>
 
-    <label for="ap_delanteros">AP Delanteros:</label>
-    <input type="text" name="ap_delanteros" id="ap_delanteros">
-
-    <label for="ap_traseros">AP Traseros:</label>
-    <input type="text" name="ap_traseros" id="ap_traseros">
-
-    <label for="curv_garrones">Curv. Garrones:</label>
-    <input type="text" name="curv_garrones" id="curv_garrones">
-
-    <label for="apert_posterior">Apert. Posterior:</label>
-    <input type="text" name="apert_posterior" id="apert_posterior">
-
-    <label for="ubres_pezones">Ubres/pezones:</label>
-    <input type="text" name="ubres_pezones" id="ubres_pezones">
-
-    <label for="forma_testicular">Forma testicular:</label>
-    <input type="text" name="forma_testicular" id="forma_testicular">
-
-    <label for="desplazamiento">Desplazamiento:</label>
-    <input type="text" name="desplazamiento" id="desplazamiento">
-
-    <label for="impresion_general">Impresión general:</label>
-    <input type="text" name="impresion_general" id="impresion_general">
-
-    <label for="musculatura">Musculatura:</label>
-    <input type="text" name="musculatura" id="musculatura">
-
-    <label for="anchura">Anchura:</label>
-    <input type="text" name="anchura" id="anchura">
-
-    <label for="costilla">Costilla:</label>
-    <input type="text" name="costilla" id="costilla">
-
-    <label for="docilidad">Docilidad:</label>
-    <input type="text" name="docilidad" id="docilidad">
-
-    <label for="valoracion">Valoración:</label>
-    <input type="text" name="valoracion" id="valoracion">
-
-    <label for="observaciones">Observaciones:</label>
-    <textarea name="observaciones" id="observaciones"></textarea>
-
-    <label for="premios">Premios:</label>
-    <textarea name="premios" id="premios"></textarea>
-
-    <h3>EPDs</h3>
-    <label for="epd_nac">EPD Nac:</label>
-    <input type="text" name="epd_nac" id="epd_nac">
-
-    <label for="epd_dest">EPD Dest:</label>
-    <input type="text" name="epd_dest" id="epd_dest">
-
-    <label for="epd_leche">EPD Leche:</label>
-    <input type="text" name="epd_leche" id="epd_leche">
-
-    <label for="epd_18m">EPD 18m:</label>
-    <input type="text" name="epd_18m" id="epd_18m">
-
-    <label for="epd_pa_v">EPD PA/V:</label>
-    <input type="text" name="epd_pa_v" id="epd_pa_v">
-
-    <label for="epd_ce">EPD CE:</label>
-    <input type="text" name="epd_ce" id="epd_ce">
-
-    <label for="epd_aob">EPD AOB:</label>
-    <input type="text" name="epd_aob" id="epd_aob">
-
-    <label for="epd_egs">EPD EGS:</label>
-    <input type="text" name="epd_egs" id="epd_egs">
-
-    <label for="epd_marb">EPD MARB:</label>
-    <input type="text" name="epd_marb" id="epd_marb">
-
-    <label for="val_14m">Val 14m:</label>
-    <input type="text" name="val_14m" id="val_14m">
-
-    <label for="val_18m">Val 18m:</label>
-    <input type="text" name="val_18m" id="val_18m">
-
-    <label for="val_ternero">Val ternero:</label>
-    <input type="text" name="val_ternero" id="val_ternero">
-
-    <label for="val_adulto">Val adulto:</label>
-    <input type="text" name="val_adulto" id="val_adulto">
-
-    <button type="submit">Registrar</button>
+    <div class="col-md-12 mt-3">
+        <button type="submit" class="btn btn-primary">Registrar</button>
+        <a href="{{ url_for('ver_raza', raza_id=raza.id) }}" class="btn btn-secondary ms-2">Volver</a>
+    </div>
 </form>
 {% endblock %}
