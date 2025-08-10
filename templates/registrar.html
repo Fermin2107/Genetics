@@ -6,23 +6,27 @@
     <div class="row g-3">
         <div class="col-md-3">
             <label class="form-label">RP*</label>
-            <input class="form-control" name="rp" required maxlength="20">
+            <input class="form-control" name="rp" required maxlength="50">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">HBA</label>
+            <input class="form-control" name="hba" maxlength="50">
         </div>
         <div class="col-md-3">
             <label class="form-label">Nombre</label>
             <input class="form-control" name="nombre" maxlength="100">
         </div>
         <div class="col-md-3">
-            <label class="form-label">Fecha Nacimiento</label>
-            <input type="date" class="form-control" name="fecha_nacimiento">
+            <label class="form-label">Sexo</label>
+            <input class="form-control" name="sexo" maxlength="10">
         </div>
         <div class="col-md-3">
-            <label class="form-label">Sexo</label>
-            <select class="form-select" name="sexo">
-                <option value="">-</option>
-                <option value="Macho">Macho</option>
-                <option value="Hembra">Hembra</option>
-            </select>
+            <label class="form-label">Fecha Nacimiento</label>
+            <input type="date" class="form-control" name="fecha_nac">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Nacimiento</label>
+            <input class="form-control" name="nacimiento" maxlength="10">
         </div>
         <div class="col-md-3">
             <label class="form-label">Color</label>
@@ -45,62 +49,84 @@
             <input class="form-control" name="abuelo_materno" maxlength="100">
         </div>
         <div class="col-md-3">
-            <label class="form-label">HBA</label>
-            <input class="form-control" name="hba" maxlength="50">
+            <label class="form-label">Familia</label>
+            <input class="form-control" name="familia" maxlength="100">
         </div>
         <div class="col-md-3">
-            <label class="form-label">Nacimiento</label>
-            <input class="form-control" name="nacimiento" maxlength="10">
+            <label class="form-label">F</label>
+            <input class="form-control" name="f" maxlength="20">
         </div>
-        <!-- Valores y evaluaciones -->
-        <div class="col-md-2">
-            <label class="form-label">Val 14m</label>
-            <input class="form-control" name="val_14m" maxlength="100">
+        <div class="col-md-3">
+            <label class="form-label">Tamaño</label>
+            <input class="form-control" name="tamano" maxlength="30">
         </div>
-        <div class="col-md-2">
-            <label class="form-label">Val 18m</label>
-            <input class="form-control" name="val_18m" maxlength="100">
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">Val Ternero</label>
-            <input class="form-control" name="val_ternero" maxlength="100">
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">Val Adulto</label>
-            <input class="form-control" name="val_adulto" maxlength="100">
-        </div>
-        <!-- Características -->
         <div class="col-md-2">
             <label class="form-label">Pezuñas</label>
-            <input class="form-control" name="pezuñas" type="number" min="0">
+            <input class="form-control" name="pezuñas" maxlength="20">
         </div>
         <div class="col-md-2">
             <label class="form-label">Articulación</label>
-            <input class="form-control" name="articulacion" type="number" min="0">
+            <input class="form-control" name="articulacion" maxlength="20">
         </div>
         <div class="col-md-2">
-            <label class="form-label">Garrones</label>
-            <input class="form-control" name="garrones" type="number" min="0">
+            <label class="form-label">Aplomos Delanteros</label>
+            <input class="form-control" name="ap_delanteros" maxlength="20">
         </div>
         <div class="col-md-2">
-            <label class="form-label">Patas Atrás</label>
-            <input class="form-control" name="patas_atras" type="number" min="0">
+            <label class="form-label">Aplomos Traseros</label>
+            <input class="form-control" name="ap_traseros" maxlength="20">
         </div>
         <div class="col-md-2">
-            <label class="form-label">Manos</label>
-            <input class="form-control" name="manos" type="number" min="0">
+            <label class="form-label">Curvatura Garrones</label>
+            <input class="form-control" name="curv_garrones" maxlength="20">
         </div>
         <div class="col-md-2">
-            <label class="form-label">CE (cm)</label>
-            <input class="form-control" name="ce" type="number" min="0" step="0.01">
+            <label class="form-label">Apertura Posterior</label>
+            <input class="form-control" name="apert_posterior" maxlength="20">
         </div>
         <div class="col-md-2">
             <label class="form-label">Ubres/Pezones</label>
-            <input class="form-control" name="ubres_pezones" type="number" min="0">
+            <input class="form-control" name="ubres_pezones" maxlength="20">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Forma Testicular</label>
+            <input class="form-control" name="forma_testicular" maxlength="20">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Desplazamiento</label>
+            <input class="form-control" name="desplazamiento" maxlength="20">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Clase</label>
+            <input class="form-control" name="clase" maxlength="30">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Impresión General</label>
+            <input class="form-control" name="impresion_general" maxlength="100">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Musculatura</label>
+            <input class="form-control" name="musculatura" maxlength="20">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Anchura</label>
+            <input class="form-control" name="anchura" maxlength="20">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Costilla</label>
+            <input class="form-control" name="costilla" maxlength="20">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Docilidad</label>
+            <input class="form-control" name="docilidad" maxlength="20">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Valoración</label>
+            <input class="form-control" name="valoracion" maxlength="50">
         </div>
         <div class="col-md-12">
-            <label class="form-label">Comentarios</label>
-            <textarea class="form-control" name="comentarios" rows="2"></textarea>
+            <label class="form-label">Observaciones</label>
+            <textarea class="form-control" name="observaciones" rows="2"></textarea>
         </div>
         <div class="col-md-12">
             <label class="form-label">Premios</label>
@@ -142,6 +168,23 @@
         <div class="col-md-2">
             <label class="form-label">EPD MARB</label>
             <input class="form-control" name="epd_marb" maxlength="50">
+        </div>
+        <!-- Valoraciones -->
+        <div class="col-md-2">
+            <label class="form-label">Valoración 14m</label>
+            <input class="form-control" name="val_14m" maxlength="100">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Valoración 18m</label>
+            <input class="form-control" name="val_18m" maxlength="100">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Valoración Ternero</label>
+            <input class="form-control" name="val_ternero" maxlength="100">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Valoración Adulto</label>
+            <input class="form-control" name="val_adulto" maxlength="100">
         </div>
     </div>
     <div class="mt-4">
