@@ -18,10 +18,10 @@
     <div class="col-md-2"><input class="form-control" type="date" name="fecha_nac_max" placeholder="Fecha Nac. hasta" value="{{ request.args.get('fecha_nac_max','') }}"></div>
     {% for campo in ['pezuñas', 'ubres_pezones', 'manos', 'garrones', 'patas_atras', 'articulacion'] %}
     <div class="col-md-1">
-        <input class="form-control" type="number" min="0" name="{{ campo }}_min" placeholder="{{ campo|capitalize }} min" value="{{ request.args.get(campo~'_min','') }}">
+        <input class="form-control" type="text" name="{{ campo }}_min" placeholder="{{ campo|capitalize }} min" value="{{ request.args.get(campo~'_min','') }}">
     </div>
     <div class="col-md-1">
-        <input class="form-control" type="number" min="0" name="{{ campo }}_max" placeholder="{{ campo|capitalize }} max" value="{{ request.args.get(campo~'_max','') }}">
+        <input class="form-control" type="text" name="{{ campo }}_max" placeholder="{{ campo|capitalize }} max" value="{{ request.args.get(campo~'_max','') }}">
     </div>
     {% endfor %}
     <div class="col-md-12 mt-2">
