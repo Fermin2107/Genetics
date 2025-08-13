@@ -53,19 +53,19 @@ class Animal(db.Model):
     tamano = db.Column(db.String(30))
     pezuñas = db.Column(db.Float)        # <-- NUMÉRICO
     articulacion = db.Column(db.Float)   # <-- NUMÉRICO
-    ap_delanteros = db.Column(db.String(20))
-    ap_traseros = db.Column(db.String(20))
-    curv_garrones = db.Column(db.String(20))
-    apert_posterior = db.Column(db.String(20))
-    ubres_pezones = db.Column(db.String(20))
-    forma_testicular = db.Column(db.String(20))
-    desplazamiento = db.Column(db.String(20))
+    ap_delanteros = db.Column(db.String(50))
+    ap_traseros = db.Column(db.String(50))
+    curv_garrones = db.Column(db.String(50))
+    apert_posterior = db.Column(db.String(50))
+    ubres_pezones = db.Column(db.String(50))
+    forma_testicular = db.Column(db.String(50))
+    desplazamiento = db.Column(db.String(50))
     clase = db.Column(db.Float)          # <-- NUMÉRICO
     impresion_general = db.Column(db.String(100))
-    musculatura = db.Column(db.String(20))
-    anchura = db.Column(db.String(20))
-    costilla = db.Column(db.String(20))
-    docilidad = db.Column(db.String(20))
+    musculatura = db.Column(db.String(50))
+    anchura = db.Column(db.String(50))
+    costilla = db.Column(db.String(50))
+    docilidad = db.Column(db.String(50))
     valoracion = db.Column(db.String(50))
     observaciones = db.Column(db.Text)
     premios = db.Column(db.Text)
@@ -461,3 +461,4 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
