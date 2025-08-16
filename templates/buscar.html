@@ -17,6 +17,12 @@
     <label for="sexo">Sexo:</label>
     <input type="text" name="sexo" id="sexo" value="{{ request.args.get('sexo', '') }}">
 
+    <!-- FILTROS FECHA NACIMIENTO -->
+    <label for="fecha_nac_min">Fecha Nac. (mín):</label>
+    <input type="date" name="fecha_nac_min" id="fecha_nac_min" value="{{ request.args.get('fecha_nac_min', '') }}">
+    <label for="fecha_nac_max">Fecha Nac. (máx):</label>
+    <input type="date" name="fecha_nac_max" id="fecha_nac_max" value="{{ request.args.get('fecha_nac_max', '') }}">
+
     <!-- FILTROS NUMÉRICOS -->
     <label for="pezuñas_min">Pezuñas (mín):</label>
     <input type="number" step="any" name="pezuñas_min" id="pezuñas_min" value="{{ request.args.get('pezuñas_min', '') }}">
