@@ -222,9 +222,11 @@ def ver_raza(raza_id):
 
     return render_template('raza.html', raza=raza, animales=animales, total=len(animales), orden=orden)
 
-@app.route('/raza/<int:raza_id>/registrar', methods=['GET', 'POST'])
+@app.route('/raza/<int:raza_id>/buscar', methods=['GET', 'POST'])
 @login_required
-def registrar_animal(raza_id):
+def buscar_animales(raza_id):
+    print(f"DEBUG: URL: {request.url}")
+    print(f"DEBUG: Filtros recibidos: {request.args}")
     raza = Raza.query.filter_by(id=raza_id, user_id=current_user.id).first_or_404()
     if request.method == 'POST':
         data = request.form
@@ -464,4 +466,5 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
 
