@@ -1,3 +1,4 @@
+```python name=app.py
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user, UserMixin
@@ -211,15 +212,9 @@ def ver_raza(raza_id):
 
     orden = request.args.get('orden', 'asc')
     if orden == 'desc':
-        try:
-            animales = query.order_by(db.cast(Animal.rp, db.Integer).desc()).all()
-        except Exception:
-            animales = query.order_by(Animal.rp.desc()).all()
+        animales = query.order_by(Animal.rp.desc()).all()
     else:
-        try:
-            animales = query.order_by(db.cast(Animal.rp, db.Integer).asc()).all()
-        except Exception:
-            animales = query.order_by(Animal.rp.asc()).all()
+        animales = query.order_by(Animal.rp.asc()).all()
     return render_template('raza.html', raza=raza, animales=animales, total=len(animales), orden=orden)
 
 @app.route('/raza/<int:raza_id>/registrar', methods=['GET', 'POST'])
@@ -309,18 +304,20 @@ def buscar_animales(raza_id):
     raza = Raza.query.filter_by(id=raza_id, user_id=current_user.id).first_or_404()
     filtros = request.args
     query = Animal.query.filter(Animal.raza_id == raza_id)
-    rp = filtros.get('rp', '').strip()
-    if rp: query = query.filter(Animal.rp.ilike(f'%{rp}%'))
-    nombre = filtros.get('nombre', '').strip()
-    if nombre: query = query.filter(Animal.nombre.ilike(f'%{nombre}%'))
-    padre = filtros.get('padre', '').strip()
-    if padre: query = query.filter(Animal.padre.ilike(f'%{padre}%'))
-    madre = filtros.get('madre', '').strip()
-    if madre: query = query.filter(Animal.madre.ilike(f'%{madre}%'))
-    sexo = filtros.get('sexo', '').strip()
-    if sexo: query = query.filter(Animal.sexo.ilike(sexo))
 
-    def get_range_val(campo, numeric=False):
+    def filtrar_like(query, campo):
+        valor = filtros.get(campo, '').strip()
+        if valor:
+            query = query.filter(getattr(Animal, campo).ilike(f'%{valor}%'))
+        return query
+
+    def filtrar_igual(query, campo):
+        valor = filtros.get(campo, '').strip()
+        if valor:
+            query = query.filter(getattr(Animal, campo) == valor)
+        return query
+
+    def filtrar_rango(query, campo, numeric=False):
         min_v = filtros.get(f'{campo}_min', '').strip()
         max_v = filtros.get(f'{campo}_max', '').strip()
         if numeric:
@@ -328,14 +325,21 @@ def buscar_animales(raza_id):
                 if min_v: min_v = float(min_v.replace(',', '.'))
                 if max_v: max_v = float(max_v.replace(',', '.'))
             except Exception: min_v = max_v = None
-        return min_v, max_v
-
-    # Solo rango en los campos numéricos
-    for campo in ['pezuñas', 'articulacion', 'clase']:
-        min_v, max_v = get_range_val(campo, numeric=True)
         if min_v not in (None, ''): query = query.filter(getattr(Animal, campo) >= min_v)
         if max_v not in (None, ''): query = query.filter(getattr(Animal, campo) <= max_v)
+        return query
 
+    # Filtros de texto
+    for campo in ['rp', 'nombre', 'padre', 'madre']:
+        query = filtrar_like(query, campo)
+    # Filtro sexo (igual)
+    query = filtrar_igual(query, 'sexo')
+
+    # Rango en los campos numéricos
+    for campo in ['pezuñas', 'articulacion', 'clase']:
+        query = filtrar_rango(query, campo, numeric=True)
+
+    # Rango fecha nacimiento
     fecha_min = filtros.get('fecha_nac_min', '').strip()
     fecha_max = filtros.get('fecha_nac_max', '').strip()
     try:
@@ -347,17 +351,13 @@ def buscar_animales(raza_id):
             query = query.filter(Animal.fecha_nac <= fecha_max_dt)
     except ValueError:
         flash('Formato de fecha incorrecto en los filtros. Use YYYY-MM-DD.', 'danger')
+
+    # Orden
     orden = filtros.get('orden', 'asc')
     if orden == 'desc':
-        try:
-            animales = query.order_by(db.cast(Animal.rp, db.Integer).desc()).all()
-        except Exception:
-            animales = query.order_by(Animal.rp.desc()).all()
+        animales = query.order_by(Animal.rp.desc()).all()
     else:
-        try:
-            animales = query.order_by(db.cast(Animal.rp, db.Integer).asc()).all()
-        except Exception:
-            animales = query.order_by(Animal.rp.asc()).all()
+        animales = query.order_by(Animal.rp.asc()).all()
     cantidad = len(animales)
     return render_template('buscar.html', animales=animales, cantidad=cantidad, raza=raza)
 
@@ -461,4 +461,4 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
-
+```
