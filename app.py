@@ -209,12 +209,15 @@ def ver_raza(raza_id):
     for campo in ['pezuñas', 'articulacion', 'clase']:
         query = filtrar_rango(query, campo, numeric=True)
 
-    # Ordenamiento RP mejorado (solo numérico si posible)
+    # Ordenamiento RP robusto
     animales = query.all()
     orden = request.args.get('orden', 'asc')
     def rp_key(animal):
         rp = animal.rp
-        return int(rp) if rp.isdigit() else rp
+        if rp.isdigit():
+            return (0, int(rp))
+        else:
+            return (1, rp)
     animales = sorted(animales, key=rp_key, reverse=(orden == 'desc'))
 
     return render_template('raza.html', raza=raza, animales=animales, total=len(animales), orden=orden)
@@ -347,10 +350,13 @@ def buscar_animales(raza_id):
     # Obtengo animales de la DB
     animales = query.all()
 
-    # Ordenamiento RP: primero por número si se puede, luego por string
+    # Ordenamiento RP robusto
     def rp_key(animal):
         rp = animal.rp
-        return int(rp) if rp.isdigit() else rp
+        if rp.isdigit():
+            return (0, int(rp))
+        else:
+            return (1, rp)
 
     orden = filtros.get('orden', 'asc')
     animales = sorted(animales, key=rp_key, reverse=(orden == 'desc'))
