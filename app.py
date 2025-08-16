@@ -222,7 +222,7 @@ def ver_raza(raza_id):
 
     return render_template('raza.html', raza=raza, animales=animales, total=len(animales), orden=orden)
 
-@app.route('/raza/<int:raza_id>/buscar', methods=['GET', 'POST'])
+@app.route('/raza/<int:raza_id>/buscar', methods=['GET']
 @login_required
 def buscar_animales(raza_id):
     print(f"DEBUG: URL: {request.url}")
@@ -466,5 +466,6 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
 
 
