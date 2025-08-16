@@ -51,8 +51,8 @@ class Animal(db.Model):
     familia = db.Column(db.String(100))
     f = db.Column(db.String(20))
     tamano = db.Column(db.String(30))
-    pezuñas = db.Column(db.Float)        # <-- NUMÉRICO
-    articulacion = db.Column(db.Float)   # <-- NUMÉRICO
+    pezuñas = db.Column(db.Float)
+    articulacion = db.Column(db.Float)
     ap_delanteros = db.Column(db.String(50))
     ap_traseros = db.Column(db.String(50))
     curv_garrones = db.Column(db.String(50))
@@ -60,7 +60,7 @@ class Animal(db.Model):
     ubres_pezones = db.Column(db.String(50))
     forma_testicular = db.Column(db.String(50))
     desplazamiento = db.Column(db.String(50))
-    clase = db.Column(db.Float)          # <-- NUMÉRICO
+    clase = db.Column(db.Float)
     impresion_general = db.Column(db.String(100))
     musculatura = db.Column(db.String(50))
     anchura = db.Column(db.String(50))
@@ -89,7 +89,6 @@ class Animal(db.Model):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Helper para decimales/texto
 def fix_decimal(val):
     val = (val or '').strip()
     return val.replace(',', '.') if val else None
@@ -205,11 +204,9 @@ def ver_raza(raza_id):
             query = query.filter(getattr(Animal, campo) <= max_val)
         return query
 
-    # Solo filtra por rango los campos numéricos
     for campo in ['pezuñas', 'articulacion', 'clase']:
         query = filtrar_rango(query, campo, numeric=True)
 
-    # Ordenamiento RP robusto
     animales = query.all()
     orden = request.args.get('orden', 'asc')
     def rp_key(animal):
@@ -310,17 +307,14 @@ def buscar_animales(raza_id):
     filtros = request.args
     query = Animal.query.filter(Animal.raza_id == raza_id)
 
-    # Filtros texto
     for campo in ['rp', 'nombre', 'padre', 'madre']:
         valor = filtros.get(campo, '').strip()
         if valor:
             query = query.filter(getattr(Animal, campo).ilike(f'%{valor}%'))
-    # Filtro sexo exacto
     sexo = filtros.get('sexo', '').strip()
     if sexo:
         query = query.filter(Animal.sexo == sexo)
 
-    # Filtros de rango
     for campo in ['pezuñas', 'articulacion', 'clase']:
         min_v = filtros.get(f'{campo}_min', '').strip()
         max_v = filtros.get(f'{campo}_max', '').strip()
@@ -333,7 +327,6 @@ def buscar_animales(raza_id):
                 query = query.filter(getattr(Animal, campo) <= float(max_v.replace(',', '.')))
             except: pass
 
-    # Filtro fecha nacimiento
     fecha_min = filtros.get('fecha_nac_min', '').strip()
     fecha_max = filtros.get('fecha_nac_max', '').strip()
     if fecha_min:
@@ -347,10 +340,8 @@ def buscar_animales(raza_id):
             query = query.filter(Animal.fecha_nac <= fecha_max_dt)
         except: pass
 
-    # Obtengo animales de la DB
     animales = query.all()
 
-    # Ordenamiento RP robusto
     def rp_key(animal):
         rp = animal.rp
         if rp.isdigit():
@@ -371,7 +362,11 @@ def ficha_animal(id):
     if animal.raza.usuario.id != current_user.id:
         flash('No tienes permiso para ver este animal.', 'danger')
         return redirect(url_for('razas'))
-    return render_template('ficha.html', animal=animal)
+    # Producción: hijos donde padre o madre coinciden con el RP del animal actual
+    hijos = Animal.query.filter(
+        (Animal.padre == animal.rp) | (Animal.madre == animal.rp)
+    ).all()
+    return render_template('ficha.html', animal=animal, hijos=hijos)
 
 @app.route('/animal/<int:id>/editar', methods=['GET', 'POST'])
 @login_required
