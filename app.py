@@ -1,4 +1,3 @@
-```python name=app.py
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user, UserMixin
@@ -462,3 +461,4 @@ if __name__ == '__main__':
         db.create_all()
     app.run(debug=True)
 ```
+
