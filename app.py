@@ -362,9 +362,9 @@ def ficha_animal(id):
     if animal.raza.usuario.id != current_user.id:
         flash('No tienes permiso para ver este animal.', 'danger')
         return redirect(url_for('razas'))
-    # Producción: hijos donde padre o madre coinciden con el RP del animal actual
+    # Producción: hijos donde padre o madre coinciden con el NOMBRE del animal actual
     hijos = Animal.query.filter(
-        (Animal.padre == animal.rp) | (Animal.madre == animal.rp)
+        (Animal.padre == animal.nombre) | (Animal.madre == animal.nombre)
     ).all()
     return render_template('ficha.html', animal=animal, hijos=hijos)
 
@@ -459,3 +459,4 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
