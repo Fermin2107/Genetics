@@ -61,6 +61,34 @@
         <tr><th>Valoración adulto</th><td>{{ animal.val_adulto }}</td></tr>
     </tbody>
 </table>
+
+<!-- PRODUCCIÓN (HIJOS) -->
+<h4 class="mt-4">Producción (Hijos)</h4>
+{% if hijos %}
+<table class="table table-bordered table-sm">
+    <thead>
+        <tr>
+            <th>RP</th>
+            <th>Nombre</th>
+            <th>Sexo</th>
+            <th>Ficha</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for hijo in hijos %}
+        <tr>
+            <td>{{ hijo.rp }}</td>
+            <td>{{ hijo.nombre }}</td>
+            <td>{{ hijo.sexo }}</td>
+            <td><a href="{{ url_for('ficha_animal', id=hijo.id) }}">Ver ficha</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No tiene hijos registrados.</p>
+{% endif %}
+
 <div class="mt-3">
     <a class="btn btn-warning" href="{{ url_for('editar_animal', id=animal.id) }}">Editar</a>
     <form method="POST" action="{{ url_for('eliminar_animal', id=animal.id) }}" style="display: inline;" onsubmit="return confirm('¿Seguro que deseas eliminar este animal?');">
@@ -69,3 +97,4 @@
     <a class="btn btn-secondary" href="{{ url_for('ver_raza', raza_id=animal.raza_id) }}">Volver a la raza</a>
 </div>
 {% endblock %}
+
