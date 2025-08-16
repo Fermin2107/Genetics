@@ -209,11 +209,14 @@ def ver_raza(raza_id):
     for campo in ['pezuñas', 'articulacion', 'clase']:
         query = filtrar_rango(query, campo, numeric=True)
 
+    # Ordenamiento RP mejorado (solo numérico si posible)
+    animales = query.all()
     orden = request.args.get('orden', 'asc')
-    if orden == 'desc':
-        animales = query.order_by(Animal.rp.desc()).all()
-    else:
-        animales = query.order_by(Animal.rp.asc()).all()
+    def rp_key(animal):
+        rp = animal.rp
+        return int(rp) if rp.isdigit() else rp
+    animales = sorted(animales, key=rp_key, reverse=(orden == 'desc'))
+
     return render_template('raza.html', raza=raza, animales=animales, total=len(animales), orden=orden)
 
 @app.route('/raza/<int:raza_id>/registrar', methods=['GET', 'POST'])
@@ -297,66 +300,61 @@ def registrar_animal(raza_id):
         return redirect(url_for('ver_raza', raza_id=raza.id))
     return render_template('registrar.html', raza=raza)
 
-@app.route('/raza/<int:raza_id>/buscar', methods=['GET', 'POST'])
+@app.route('/raza/<int:raza_id>/buscar', methods=['GET'])
 @login_required
 def buscar_animales(raza_id):
     raza = Raza.query.filter_by(id=raza_id, user_id=current_user.id).first_or_404()
     filtros = request.args
     query = Animal.query.filter(Animal.raza_id == raza_id)
 
-    def filtrar_like(query, campo):
+    # Filtros texto
+    for campo in ['rp', 'nombre', 'padre', 'madre']:
         valor = filtros.get(campo, '').strip()
         if valor:
             query = query.filter(getattr(Animal, campo).ilike(f'%{valor}%'))
-        return query
+    # Filtro sexo exacto
+    sexo = filtros.get('sexo', '').strip()
+    if sexo:
+        query = query.filter(Animal.sexo == sexo)
 
-    def filtrar_igual(query, campo):
-        valor = filtros.get(campo, '').strip()
-        if valor:
-            query = query.filter(getattr(Animal, campo) == valor)
-        return query
-
-    def filtrar_rango(query, campo, numeric=False):
+    # Filtros de rango
+    for campo in ['pezuñas', 'articulacion', 'clase']:
         min_v = filtros.get(f'{campo}_min', '').strip()
         max_v = filtros.get(f'{campo}_max', '').strip()
-        if numeric:
+        if min_v:
             try:
-                if min_v: min_v = float(min_v.replace(',', '.'))
-                if max_v: max_v = float(max_v.replace(',', '.'))
-            except Exception: min_v = max_v = None
-        if min_v not in (None, ''): query = query.filter(getattr(Animal, campo) >= min_v)
-        if max_v not in (None, ''): query = query.filter(getattr(Animal, campo) <= max_v)
-        return query
+                query = query.filter(getattr(Animal, campo) >= float(min_v.replace(',', '.')))
+            except: pass
+        if max_v:
+            try:
+                query = query.filter(getattr(Animal, campo) <= float(max_v.replace(',', '.')))
+            except: pass
 
-    # Filtros de texto
-    for campo in ['rp', 'nombre', 'padre', 'madre']:
-        query = filtrar_like(query, campo)
-    # Filtro sexo (igual)
-    query = filtrar_igual(query, 'sexo')
-
-    # Rango en los campos numéricos
-    for campo in ['pezuñas', 'articulacion', 'clase']:
-        query = filtrar_rango(query, campo, numeric=True)
-
-    # Rango fecha nacimiento
+    # Filtro fecha nacimiento
     fecha_min = filtros.get('fecha_nac_min', '').strip()
     fecha_max = filtros.get('fecha_nac_max', '').strip()
-    try:
-        if fecha_min:
+    if fecha_min:
+        try:
             fecha_min_dt = datetime.strptime(fecha_min, '%Y-%m-%d')
             query = query.filter(Animal.fecha_nac >= fecha_min_dt)
-        if fecha_max:
+        except: pass
+    if fecha_max:
+        try:
             fecha_max_dt = datetime.strptime(fecha_max, '%Y-%m-%d')
             query = query.filter(Animal.fecha_nac <= fecha_max_dt)
-    except ValueError:
-        flash('Formato de fecha incorrecto en los filtros. Use YYYY-MM-DD.', 'danger')
+        except: pass
 
-    # Orden
+    # Obtengo animales de la DB
+    animales = query.all()
+
+    # Ordenamiento RP: primero por número si se puede, luego por string
+    def rp_key(animal):
+        rp = animal.rp
+        return int(rp) if rp.isdigit() else rp
+
     orden = filtros.get('orden', 'asc')
-    if orden == 'desc':
-        animales = query.order_by(Animal.rp.desc()).all()
-    else:
-        animales = query.order_by(Animal.rp.asc()).all()
+    animales = sorted(animales, key=rp_key, reverse=(orden == 'desc'))
+
     cantidad = len(animales)
     return render_template('buscar.html', animales=animales, cantidad=cantidad, raza=raza)
 
@@ -460,5 +458,4 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
-
 
