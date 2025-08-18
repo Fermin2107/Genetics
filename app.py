@@ -455,11 +455,19 @@ def eliminar_animal(id):
     db.session.commit()
     flash('Animal eliminado correctamente.', 'success')
     return redirect(url_for('ver_raza', raza_id=raza_id))
-
+        
 @app.route('/actualizar_epds_excel', methods=['GET', 'POST'])
 def actualizar_epds_excel():
     if request.method == 'POST':
         archivo = request.files['archivo']
+        nombre = archivo.filename
+        if nombre.endswith('.xlsx'):
+            df = pd.read_excel(archivo, engine='openpyxl')
+        elif nombre.endswith('.xls'):
+            df = pd.read_excel(archivo, engine='xlrd')
+        else:
+            flash('Formato de archivo no soportado. Solo se permiten .xls y .xlsx.', 'danger')
+            return redirect(url_for('actualizar_epds_excel'))
         # Lee el Excel, funciona con .xls y .xlsx
         df = pd.read_excel(archivo)
         actualizados = 0
@@ -496,6 +504,7 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
 
 
 
