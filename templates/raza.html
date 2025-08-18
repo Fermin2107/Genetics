@@ -3,6 +3,19 @@
 <h1 class="mb-4">Animales de la raza: {{ raza.nombre }}</h1>
 
 <a href="{{ url_for('registrar_animal', raza_id=raza.id) }}" class="btn btn-primary mb-3">Registrar Nuevo Animal</a>
+<!-- ...todo tu código arriba... -->
+
+<div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+    <a href="{{ url_for('registrar_animal', raza_id=raza.id) }}" class="btn btn-primary">Registrar Nuevo Animal</a>
+
+    <!-- Formulario para subir Excel -->
+    <form method="post" action="{{ url_for('actualizar_epds_excel', raza_id=raza.id) }}" enctype="multipart/form-data" style="display: inline;">
+        <input type="file" name="archivo" accept=".xls,.xlsx" required>
+        <button type="submit" class="btn btn-success">Actualizar EPDs por Excel</button>
+    </form>
+</div>
+
+<!-- ...filtros y el resto de tu template... -->
 
 <form method="get" class="row g-2 mb-4">
     <div class="col-md-2"><input type="text" class="form-control" name="rp" placeholder="RP" value="{{ request.args.get('rp', '') }}"></div>
@@ -75,3 +88,4 @@
 </table>
 <a href="{{ url_for('razas') }}" class="btn btn-secondary mt-3">Volver a Razas</a>
 {% endblock %}
+
