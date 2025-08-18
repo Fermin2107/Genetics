@@ -457,8 +457,10 @@ def eliminar_animal(id):
     return redirect(url_for('ver_raza', raza_id=raza_id))
 
 @app.route('/actualizar_epds_excel', methods=['GET', 'POST'])
-@login_required  # Si quieres que solo usuarios logueados lo usen, agrega este decorador
+@login_required
 def actualizar_epds_excel():
+    import pandas as pd
+
     def clean_rp(val):
         if pd.isnull(val):
             return ''
@@ -469,18 +471,38 @@ def actualizar_epds_excel():
     if request.method == 'POST':
         archivo = request.files['archivo']
         nombre = archivo.filename
+        # Primero: lee el archivo sin header para buscar la fila de la cabecera
         if nombre.endswith('.xlsx'):
-            df = pd.read_excel(archivo, engine='openpyxl')
+            df_raw = pd.read_excel(archivo, engine='openpyxl', header=None)
         elif nombre.endswith('.xls'):
-            df = pd.read_excel(archivo, engine='xlrd')
+            df_raw = pd.read_excel(archivo, engine='xlrd', header=None)
         else:
-            flash('Formato de archivo no soportado. Solo se permiten .xls y .xlsx.', 'danger')
+            flash('Formato de archivo no soportado. Solo .xls y .xlsx.', 'danger')
             return redirect(url_for('actualizar_epds_excel'))
+
+        # Busca la fila donde aparece la columna "RP"
+        header_row_idx = None
+        for idx, row in df_raw.iterrows():
+            if any(str(cell).strip().upper() == "RP" for cell in row):
+                header_row_idx = idx
+                break
+
+        if header_row_idx is None:
+            flash('No se encontró la cabecera con "RP" en el archivo.', 'danger')
+            return redirect(url_for('actualizar_epds_excel'))
+
+        # Re-lee el archivo con header en la fila encontrada
+        archivo.seek(0)  # Volver a leer el archivo desde el principio
+        if nombre.endswith('.xlsx'):
+            df = pd.read_excel(archivo, engine='openpyxl', header=header_row_idx)
+        elif nombre.endswith('.xls'):
+            df = pd.read_excel(archivo, engine='xlrd', header=header_row_idx)
+
+        print("Columnas detectadas:", df.columns.tolist())
 
         actualizados = 0
         for idx, row in df.iterrows():
             rp = clean_rp(row.get('RP', ''))
-            # DEBUG: imprime el RP que se está leyendo
             print(f"RP del Excel: '{rp}'")
             animal = Animal.query.filter_by(rp=rp).first()
             if animal:
@@ -505,6 +527,7 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
 
 
 
