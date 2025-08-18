@@ -461,7 +461,6 @@ def eliminar_animal(id):
 @login_required
 def actualizar_epds_excel():
     import pandas as pd
-    import re
 
     def clean_rp(val):
         if pd.isnull(val):
@@ -474,7 +473,7 @@ def actualizar_epds_excel():
         archivo = request.files['archivo']
         nombre = archivo.filename
 
-        # Leemos todo plano (sin header)
+        # Lee el archivo sin header para buscar la fila de cabecera
         if nombre.endswith('.xlsx'):
             df_raw = pd.read_excel(archivo, engine='openpyxl', header=None)
         elif nombre.endswith('.xls'):
@@ -483,42 +482,32 @@ def actualizar_epds_excel():
             flash('Formato de archivo no soportado. Solo .xls y .xlsx.', 'danger')
             return redirect(url_for('actualizar_epds_excel'))
 
-        # Detectar la fila con la cabecera (que contiene "RP" y "Nombre")
+        # Busca la fila donde están las columnas "RP", "Nombre", etc.
         header_row_idx = None
         for idx, row in df_raw.iterrows():
-            cell = str(row[0]) if len(row) > 0 else ""
-            if "RP" in cell and "Nombre" in cell:
+            if any(str(cell).strip().upper() == "RP" for cell in row):
                 header_row_idx = idx
                 break
 
         if header_row_idx is None:
-            flash('No se encontró una fila de cabecera con "RP" y "Nombre" en el archivo.', 'danger')
+            flash('No se encontró la cabecera con "RP" en el archivo.', 'danger')
             return redirect(url_for('actualizar_epds_excel'))
 
-        # Procesar la cabecera y los datos manualmente
-        header_cell = str(df_raw.iloc[header_row_idx, 0])
-        # Separar por uno o más espacios
-        columnas = re.split(r'\s+', header_cell.strip())
+        # Re-lee el archivo con header en la fila encontrada
+        archivo.seek(0)
+        if nombre.endswith('.xlsx'):
+            df = pd.read_excel(archivo, engine='openpyxl', header=header_row_idx)
+        elif nombre.endswith('.xls'):
+            df = pd.read_excel(archivo, engine='xlrd', header=header_row_idx)
 
-        data_rows = []
-        for idx in range(header_row_idx + 1, len(df_raw)):
-            fila = str(df_raw.iloc[idx, 0])
-            # Separar cada dato por uno o más espacios
-            valores = re.split(r'\s+', fila.strip())
-            if len(valores) == len(columnas):
-                data_rows.append(valores)
-
-        # Construir DataFrame
-        df = pd.DataFrame(data_rows, columns=columnas)
-        print("Columnas finales:", df.columns.tolist())
+        print("Columnas detectadas:", df.columns.tolist())
 
         actualizados = 0
         for idx, row in df.iterrows():
-            rp = clean_rp(row.get('RP', ''))
+            rp = clean_rp(row['RP'])
             print(f"RP del Excel: '{rp}'")
             animal = Animal.query.filter_by(rp=rp).first()
             if animal:
-                # Mapear los campos según columna exacta (ajusta si es necesario)
                 epd_nac = row.get('Peso al NACER', '')
                 epd_dest = row.get('Peso al DESTETE', '')
                 epd_18m = row.get('Peso 18 MESES', '')
@@ -540,6 +529,7 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
 
 
 
