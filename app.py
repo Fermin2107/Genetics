@@ -457,6 +457,7 @@ def eliminar_animal(id):
     return redirect(url_for('ver_raza', raza_id=raza_id))
 
 
+
 @app.route('/actualizar_epds_excel', methods=['GET', 'POST'])
 @login_required
 def actualizar_epds_excel():
@@ -473,33 +474,15 @@ def actualizar_epds_excel():
         archivo = request.files['archivo']
         nombre = archivo.filename
 
-        # Lee el archivo sin header para buscar la fila de cabecera
-        if nombre.endswith('.xlsx'):
-            df_raw = pd.read_excel(archivo, engine='openpyxl', header=None)
-        elif nombre.endswith('.xls'):
-            df_raw = pd.read_excel(archivo, engine='xlrd', header=None)
-        else:
-            flash('Formato de archivo no soportado. Solo .xls y .xlsx.', 'danger')
-            return redirect(url_for('actualizar_epds_excel'))
-
-        # Busca la fila donde están las columnas "RP", "Nombre", etc.
+        # Busca header automático
+        df_raw = pd.read_excel(archivo, engine='openpyxl', header=None)
         header_row_idx = None
         for idx, row in df_raw.iterrows():
             if any(str(cell).strip().upper() == "RP" for cell in row):
                 header_row_idx = idx
                 break
-
-        if header_row_idx is None:
-            flash('No se encontró la cabecera con "RP" en el archivo.', 'danger')
-            return redirect(url_for('actualizar_epds_excel'))
-
-        # Re-lee el archivo con header en la fila encontrada
         archivo.seek(0)
-        if nombre.endswith('.xlsx'):
-            df = pd.read_excel(archivo, engine='openpyxl', header=header_row_idx)
-        elif nombre.endswith('.xls'):
-            df = pd.read_excel(archivo, engine='xlrd', header=header_row_idx)
-
+        df = pd.read_excel(archivo, engine='openpyxl', header=header_row_idx)
         print("Columnas detectadas:", df.columns.tolist())
 
         actualizados = 0
@@ -508,9 +491,11 @@ def actualizar_epds_excel():
             print(f"RP del Excel: '{rp}'")
             animal = Animal.query.filter_by(rp=rp).first()
             if animal:
-                epd_nac = row.get('Peso al NACER', '')
-                epd_dest = row.get('Peso al DESTETE', '')
-                epd_18m = row.get('Peso 18 MESES', '')
+                print("ANTES:", animal.epd_nac, animal.epd_dest, animal.epd_18m)
+                print("NUEVOS:", row.get('Peso al NACER', ''), row.get('Peso al DESTETE', ''), row.get('Peso 18 MESES', ''))
+                animal.epd_nac = row.get('Peso al NACER', '')
+                animal.epd_dest = row.get('Peso al DESTETE', '')
+                animal.epd_18m = row.get('Peso 18 MESES', '')
                 epd_pa_v = row.get('Peso Adulto Vaca', '')
                 epd_ce = row.get('Cir. Esc.', '')
                 epd_leche = row.get('Habilidad Lechera', '')
@@ -529,6 +514,7 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
 
 
 
