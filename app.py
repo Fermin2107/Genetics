@@ -472,7 +472,8 @@ def actualizar_epds_excel():
     if request.method == 'POST':
         archivo = request.files['archivo']
         nombre = archivo.filename
-        # Lee el archivo SIN header
+
+        # Leemos todo plano (sin header)
         if nombre.endswith('.xlsx'):
             df_raw = pd.read_excel(archivo, engine='openpyxl', header=None)
         elif nombre.endswith('.xls'):
@@ -481,26 +482,37 @@ def actualizar_epds_excel():
             flash('Formato de archivo no soportado. Solo .xls y .xlsx.', 'danger')
             return redirect(url_for('actualizar_epds_excel'))
 
+        # Detectamos la fila con la cabecera (la que contiene "RP" y otros)
         header_row_idx = None
         for idx, row in df_raw.iterrows():
-            print(f"Fila {idx}: {[str(cell) for cell in row.values]}")  # Debug: ver cada fila
-            for cell in row:
-                if isinstance(cell, str) and cell.strip().upper() == "RP":
-                    header_row_idx = idx
-                    break
-            if header_row_idx is not None:
+            cell = str(row[0]) if len(row) > 0 else ""
+            # Buscamos que estén varias palabras clave en la celda (más robusto)
+            if "RP" in cell and "Nombre" in cell:
+                header_row_idx = idx
                 break
 
         if header_row_idx is None:
-            flash('No se encontró la cabecera con "RP" en el archivo.', 'danger')
+            flash('No se encontró una fila de cabecera con "RP" y "Nombre" en el archivo.', 'danger')
             return redirect(url_for('actualizar_epds_excel'))
 
-        # Vuelve a leer el archivo desde el principio
-        archivo.seek(0)
-        if nombre.endswith('.xlsx'):
-            df = pd.read_excel(archivo, engine='openpyxl', header=header_row_idx)
-        elif nombre.endswith('.xls'):
-            df = pd.read_excel(archivo, engine='xlrd', header=header_row_idx)
+        # Procesar la fila para obtener los nombres de columnas
+        header_cell = str(df_raw.iloc[header_row_idx, 0])
+        # Separar por espacios dobles o más (ya que hay espacios entre cada nombre)
+        import re
+        columnas = re.split(r'\s{2,}', header_cell.strip())
+
+        # Ahora, recopilar las filas de datos reales (a partir de header_row_idx + 1)
+        data_rows = []
+        for idx in range(header_row_idx + 1, len(df_raw)):
+            fila = str(df_raw.iloc[idx, 0])
+            # Separar por espacios dobles o más (igual que antes)
+            valores = re.split(r'\s{2,}', fila.strip())
+            # Solo incluir si tiene la cantidad correcta de columnas
+            if len(valores) == len(columnas):
+                data_rows.append(valores)
+
+        # Construir el DataFrame de datos reales
+        df = pd.DataFrame(data_rows, columns=columnas)
 
         print("Columnas detectadas:", df.columns.tolist())
 
@@ -510,6 +522,7 @@ def actualizar_epds_excel():
             print(f"RP del Excel: '{rp}'")
             animal = Animal.query.filter_by(rp=rp).first()
             if animal:
+                # Mapear correctamente los campos según tus columnas reales
                 epd_nac = row.get('Peso al NACER', '')
                 epd_dest = row.get('Peso al DESTETE', '')
                 epd_18m = row.get('Peso 18 MESES', '')
@@ -531,6 +544,7 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
 
 
 
