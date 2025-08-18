@@ -2,9 +2,6 @@
 {% block content %}
 <h1 class="mb-4">Animales de la raza: {{ raza.nombre }}</h1>
 
-<a href="{{ url_for('registrar_animal', raza_id=raza.id) }}" class="btn btn-primary mb-3">Registrar Nuevo Animal</a>
-<!-- ...todo tu código arriba... -->
-
 <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
     <a href="{{ url_for('registrar_animal', raza_id=raza.id) }}" class="btn btn-primary">Registrar Nuevo Animal</a>
 
@@ -88,4 +85,5 @@
 </table>
 <a href="{{ url_for('razas') }}" class="btn btn-secondary mt-3">Volver a Razas</a>
 {% endblock %}
+
 
