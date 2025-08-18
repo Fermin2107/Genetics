@@ -1,8 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
+import pandas as pd
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user, UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+from app import db, Animal  # Ajusta el import según tu estructura
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://animalesdb_user:z1xIETnjgzHv4GZXEDNQlRC9Cq0tDJfX@dpg-d29unpndiees738f42u0-a.oregon-postgres.render.com/animalesdb_6g2y'
@@ -455,8 +457,45 @@ def eliminar_animal(id):
     flash('Animal eliminado correctamente.', 'success')
     return redirect(url_for('ver_raza', raza_id=raza_id))
 
+@app.route('/actualizar_epds_excel', methods=['GET', 'POST'])
+def actualizar_epds_excel():
+    if request.method == 'POST':
+        archivo = request.files['archivo']
+        # Lee el Excel, funciona con .xls y .xlsx
+        df = pd.read_excel(archivo)
+        actualizados = 0
+        for idx, row in df.iterrows():
+            rp = str(row.get('RP', '')).strip()  # Ajusta el nombre de la columna según tu Excel
+            # Ejemplo de columnas a actualizar, ajusta los nombres según corresponda
+            epd_nac = row.get('Peso al NACER', '')
+            epd_dest = row.get('Peso al DESTETE', '')
+            epd_18m = row.get('Peso 18 MESES', '')
+            epd_pa_v = row.get('Peso Adulto Vaca', '')
+            epd_ce = row.get('Cir. Esc.', '')
+            epd_leche = row.get('Habilidad Lechera', '')
+            epd_aob = row.get('AOB', '')
+            epd_egs = row.get('EGS', '')
+            epd_marb = row.get('MARB', '')
+            animal = Animal.query.filter_by(rp=rp).first()
+            if animal:
+                animal.epd_nac = epd_nac
+                animal.epd_dest = epd_dest
+                animal.epd_18m = epd_18m
+                animal.epd_pa_v = epd_pa_v
+                animal.epd_ce = epd_ce
+                animal.epd_leche = epd_leche
+                animal.epd_aob = epd_aob
+                animal.epd_egs = epd_egs
+                animal.epd_marb = epd_marb
+                actualizados += 1
+        db.session.commit()
+        flash(f'Actualizados {actualizados} animales.', 'success')
+        return redirect(url_for('actualizar_epds_excel'))
+    return render_template('actualizar_epds_excel.html')
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
 
