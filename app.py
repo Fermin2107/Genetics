@@ -491,17 +491,15 @@ def actualizar_epds_excel():
             print(f"RP del Excel: '{rp}'")
             animal = Animal.query.filter_by(rp=rp).first()
             if animal:
-                print("ANTES:", animal.epd_nac, animal.epd_dest, animal.epd_18m)
-                print("NUEVOS:", row.get('Peso al NACER', ''), row.get('Peso al DESTETE', ''), row.get('Peso 18 MESES', ''))
                 animal.epd_nac = row.get('Peso al NACER', '')
                 animal.epd_dest = row.get('Peso al DESTETE', '')
                 animal.epd_18m = row.get('Peso 18 MESES', '')
-                epd_pa_v = row.get('Peso Adulto Vaca', '')
-                epd_ce = row.get('Cir. Esc.', '')
-                epd_leche = row.get('Habilidad Lechera', '')
-                epd_aob = row.get('AOB', '')
-                epd_egs = row.get('EGS', '')
-                epd_marb = row.get('MARB', '')
+                animal.epd_pa_v = row.get('Peso Adulto Vaca', '')
+                animal.epd_ce = row.get('Cir. Esc.', '')
+                animal.epd_leche = row.get('Habilidad Lechera', '')
+                animal.epd_aob = row.get('AOB', '')
+                animal.epd_egs = row.get('EGS', '')
+                animal.epd_marb = row.get('MARB', '')
                 actualizados += 1
             else:
                 print(f"No se encontró animal con RP: '{rp}'")
@@ -514,6 +512,7 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
 
 
 
