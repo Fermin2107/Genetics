@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Actualizar EPDs/DEPs desde archivo Excel</h2>
+<form method="post" enctype="multipart/form-data">
+    <input type="file" name="archivo" accept=".xls,.xlsx" required>
+    <br><br>
+    <button type="submit" class="btn btn-success">Actualizar EPDs</button>
+</form>
+{% endblock %}
