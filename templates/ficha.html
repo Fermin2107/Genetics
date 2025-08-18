@@ -71,6 +71,7 @@
             <th>RP</th>
             <th>Nombre</th>
             <th>Sexo</th>
+            <th>Valoración</th>
             <th>Ficha</th>
         </tr>
     </thead>
@@ -80,6 +81,7 @@
             <td>{{ hijo.rp }}</td>
             <td>{{ hijo.nombre }}</td>
             <td>{{ hijo.sexo }}</td>
+            <td>{{ hijo.valoracion }}</td>
             <td><a href="{{ url_for('ficha_animal', id=hijo.id) }}">Ver ficha</a></td>
         </tr>
         {% endfor %}
@@ -97,4 +99,3 @@
     <a class="btn btn-secondary" href="{{ url_for('ver_raza', raza_id=animal.raza_id) }}">Volver a la raza</a>
 </div>
 {% endblock %}
-
