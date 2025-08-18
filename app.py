@@ -456,6 +456,7 @@ def eliminar_animal(id):
     flash('Animal eliminado correctamente.', 'success')
     return redirect(url_for('ver_raza', raza_id=raza_id))
 
+
 @app.route('/actualizar_epds_excel', methods=['GET', 'POST'])
 @login_required
 def actualizar_epds_excel():
@@ -471,7 +472,7 @@ def actualizar_epds_excel():
     if request.method == 'POST':
         archivo = request.files['archivo']
         nombre = archivo.filename
-        # Primero: lee el archivo sin header para buscar la fila de la cabecera
+        # Lee el archivo SIN header
         if nombre.endswith('.xlsx'):
             df_raw = pd.read_excel(archivo, engine='openpyxl', header=None)
         elif nombre.endswith('.xls'):
@@ -480,19 +481,22 @@ def actualizar_epds_excel():
             flash('Formato de archivo no soportado. Solo .xls y .xlsx.', 'danger')
             return redirect(url_for('actualizar_epds_excel'))
 
-        # Busca la fila donde aparece la columna "RP"
         header_row_idx = None
         for idx, row in df_raw.iterrows():
-            if any(str(cell).strip().upper() == "RP" for cell in row):
-                header_row_idx = idx
+            print(f"Fila {idx}: {[str(cell) for cell in row.values]}")  # Debug: ver cada fila
+            for cell in row:
+                if isinstance(cell, str) and cell.strip().upper() == "RP":
+                    header_row_idx = idx
+                    break
+            if header_row_idx is not None:
                 break
 
         if header_row_idx is None:
             flash('No se encontró la cabecera con "RP" en el archivo.', 'danger')
             return redirect(url_for('actualizar_epds_excel'))
 
-        # Re-lee el archivo con header en la fila encontrada
-        archivo.seek(0)  # Volver a leer el archivo desde el principio
+        # Vuelve a leer el archivo desde el principio
+        archivo.seek(0)
         if nombre.endswith('.xlsx'):
             df = pd.read_excel(archivo, engine='openpyxl', header=header_row_idx)
         elif nombre.endswith('.xls'):
@@ -527,6 +531,7 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
 
 
 
