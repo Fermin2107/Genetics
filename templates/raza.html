@@ -21,10 +21,10 @@
         <input type="text" class="form-control" name="nombre" placeholder="Nombre" value="{{ request.args.get('nombre', '') }}">
     </div>
     <div class="col-md-2">
-        <input type="text" class="form-control" name="padre" placeholder="Padre (RP)" value="{{ request.args.get('padre', '') }}">
+        <input type="text" class="form-control" name="padre" placeholder="Padre" value="{{ request.args.get('padre', '') }}">
     </div>
     <div class="col-md-2">
-        <input type="text" class="form-control" name="madre" placeholder="Madre (RP)" value="{{ request.args.get('madre', '') }}">
+        <input type="text" class="form-control" name="madre" placeholder="Madre" value="{{ request.args.get('madre', '') }}">
     </div>
     <div class="col-md-2">
         <select name="sexo" class="form-select">
@@ -82,8 +82,8 @@
                 <th>Nombre</th>
                 <th>Sexo</th>
                 <th>Fecha Nac.</th>
-                <th>Padre (RP)</th>
-                <th>Madre (RP)</th>
+                <th>Padre</th>
+                <th>Madre</th>
                 <th>Pezuñas</th>
                 <th>Articulación</th>
                 <th>Clase</th>
@@ -97,8 +97,8 @@
                 <td><a href="{{ url_for('ficha_animal', id=animal.id) }}">{{ animal.nombre }}</a></td>
                 <td>{{ animal.sexo }}</td>
                 <td>{{ animal.fecha_nac.strftime('%d/%m/%Y') if animal.fecha_nac else '' }}</td>
-                <td><a href="{{ url_for('ver_raza', raza_id=raza.id, rp=animal.padre) }}">{{ animal.padre }}</a></td>
-                <td><a href="{{ url_for('ver_raza', raza_id=raza.id, rp=animal.madre) }}">{{ animal.madre }}</a></td>
+                <td><a href="{{ url_for('ver_raza', raza_id=raza.id, padre=animal.padre) }}">{{ animal.padre }}</a></td>
+                <td><a href="{{ url_for('ver_raza', raza_id=raza.id, madre=animal.madre) }}">{{ animal.madre }}</a></td>
                 <td>{{ animal.pezuñas }}</td>
                 <td>{{ animal.articulacion }}</td>
                 <td>{{ animal.clase }}</td>
