@@ -86,8 +86,6 @@ class Animal(db.Model):
     val_adulto = db.Column(db.String(100))
     __table_args__ = (db.UniqueConstraint('rp', 'raza_id', name='uq_animal_rp_raza'),)
 
-# ✅ CORRECCIÓN DE DEPLOYMENT: Se crea el contexto de la app y las tablas aquí
-# para asegurar que existan antes de que el servidor arranque.
 with app.app_context():
     db.create_all()
 
@@ -203,7 +201,48 @@ def eliminar_raza(raza_id):
 @login_required
 def ver_raza(raza_id):
     raza = Raza.query.filter_by(id=raza_id, user_id=current_user.id).first_or_404()
-    animales = Animal.query.filter_by(raza_id=raza.id).all()
+    
+    # ✅ CORREGIDO: La lógica de filtrado ahora está aquí.
+    query = Animal.query.filter_by(raza_id=raza.id)
+    filtros = request.args
+
+    for campo in ['rp', 'nombre', 'padre', 'madre']:
+        valor = filtros.get(campo, '').strip()
+        if valor:
+            query = query.filter(getattr(Animal, campo).ilike(f'%{valor}%'))
+    
+    sexo = filtros.get('sexo', '').strip()
+    if sexo:
+        query = query.filter(Animal.sexo == sexo)
+
+    for campo in ['pezuñas', 'articulacion', 'clase']:
+        min_v = filtros.get(f'{campo}_min', '').strip()
+        max_v = filtros.get(f'{campo}_max', '').strip()
+        if min_v:
+            try:
+                query = query.filter(getattr(Animal, campo) >= float(min_v.replace(',', '.')))
+            except (ValueError, TypeError):
+                flash(f'El valor "{min_v}" no es un número válido para {campo} (mínimo).', 'danger')
+        if max_v:
+            try:
+                query = query.filter(getattr(Animal, campo) <= float(max_v.replace(',', '.')))
+            except (ValueError, TypeError):
+                flash(f'El valor "{max_v}" no es un número válido para {campo} (máximo).', 'danger')
+
+    fecha_min = filtros.get('fecha_nac_min', '').strip()
+    fecha_max = filtros.get('fecha_nac_max', '').strip()
+    if fecha_min:
+        try:
+            query = query.filter(Animal.fecha_nac >= datetime.strptime(fecha_min, '%Y-%m-%d').date())
+        except (ValueError, TypeError):
+            flash(f'El valor "{fecha_min}" no es una fecha válida (mínima).', 'danger')
+    if fecha_max:
+        try:
+            query = query.filter(Animal.fecha_nac <= datetime.strptime(fecha_max, '%Y-%m-%d').date())
+        except (ValueError, TypeError):
+            flash(f'El valor "{fecha_max}" no es una fecha válida (máxima).', 'danger')
+
+    animales = query.all()
     
     def rp_key(animal):
         if not animal.rp: return (2, "")
@@ -253,48 +292,6 @@ def registrar_animal(raza_id):
         return redirect(url_for('ver_raza', raza_id=raza.id))
     return render_template('registrar.html', raza=raza)
 
-@app.route('/raza/<int:raza_id>/buscar', methods=['GET'])
-@login_required
-def buscar_animales(raza_id):
-    raza = Raza.query.filter_by(id=raza_id, user_id=current_user.id).first_or_404()
-    filtros = request.args
-    query = Animal.query.filter(Animal.raza_id == raza_id)
-
-    # ... (lógica de filtros sin cambios) ...
-    for campo in ['rp', 'nombre', 'padre', 'madre']:
-        valor = filtros.get(campo, '').strip()
-        if valor: query = query.filter(getattr(Animal, campo).ilike(f'%{valor}%'))
-    sexo = filtros.get('sexo', '').strip()
-    if sexo: query = query.filter(Animal.sexo == sexo)
-    for campo in ['pezuñas', 'articulacion', 'clase']:
-        min_v, max_v = filtros.get(f'{campo}_min', '').strip(), filtros.get(f'{campo}_max', '').strip()
-        if min_v:
-            try: query = query.filter(getattr(Animal, campo) >= float(min_v.replace(',', '.')))
-            except (ValueError, TypeError): pass
-        if max_v:
-            try: query = query.filter(getattr(Animal, campo) <= float(max_v.replace(',', '.')))
-            except (ValueError, TypeError): pass
-    fecha_min, fecha_max = filtros.get('fecha_nac_min', '').strip(), filtros.get('fecha_nac_max', '').strip()
-    if fecha_min:
-        try: query = query.filter(Animal.fecha_nac >= datetime.strptime(fecha_min, '%Y-%m-%d').date())
-        except (ValueError, TypeError): pass
-    if fecha_max:
-        try: query = query.filter(Animal.fecha_nac <= datetime.strptime(fecha_max, '%Y-%m-%d').date())
-        except (ValueError, TypeError): pass
-
-    animales = query.all()
-
-    def rp_key(animal):
-        if not animal.rp: return (2, "")
-        rp = animal.rp
-        if rp.isdigit(): return (0, int(rp))
-        return (1, rp.upper())
-
-    orden = filtros.get('orden', 'asc')
-    animales = sorted(animales, key=rp_key, reverse=(orden == 'desc'))
-
-    return render_template('buscar.html', animales=animales, cantidad=len(animales), raza=raza)
-
 @app.route('/animal/<int:id>')
 @login_required
 def ficha_animal(id):
@@ -319,7 +316,6 @@ def editar_animal(id):
         return redirect(url_for('razas'))
     if request.method == 'POST':
         data = request.form
-        # ... (código de actualización de animal sin cambios) ...
         animal.rp=get_form_value(data, 'rp'); animal.hba=get_form_value(data, 'hba'); animal.nombre=get_form_value(data, 'nombre'); animal.sexo=get_form_value(data, 'sexo'); animal.fecha_nac=get_form_date(data, 'fecha_nac'); animal.nacimiento=get_form_value(data, 'nacimiento'); animal.color=get_form_value(data, 'color'); animal.padre=get_form_value(data, 'padre'); animal.madre=get_form_value(data, 'madre'); animal.abuelo_paterno=get_form_value(data, 'abuelo_paterno'); animal.abuelo_materno=get_form_value(data, 'abuelo_materno'); animal.familia=get_form_value(data, 'familia'); animal.f=get_form_value(data, 'f'); animal.tamano=get_form_value(data, 'tamano'); animal.pezuñas=get_form_value(data, 'pezuñas', numeric=True); animal.articulacion=get_form_value(data, 'articulacion', numeric=True); animal.ap_delanteros=get_form_value(data, 'ap_delanteros'); animal.ap_traseros=get_form_value(data, 'ap_traseros'); animal.curv_garrones=get_form_value(data, 'curv_garrones'); animal.apert_posterior=get_form_value(data, 'apert_posterior'); animal.ubres_pezones=get_form_value(data, 'ubres_pezones'); animal.forma_testicular=get_form_value(data, 'forma_testicular'); animal.desplazamiento=get_form_value(data, 'desplazamiento'); animal.clase=get_form_value(data, 'clase', numeric=True); animal.impresion_general=get_form_value(data, 'impresion_general'); animal.musculatura=get_form_value(data, 'musculatura'); animal.anchura=get_form_value(data, 'anchura'); animal.costilla=get_form_value(data, 'costilla'); animal.docilidad=get_form_value(data, 'docilidad'); animal.valoracion=get_form_value(data, 'valoracion'); animal.observaciones=get_form_value(data, 'observaciones'); animal.premios=get_form_value(data, 'premios'); animal.epd_nac=get_form_value(data, 'epd_nac'); animal.epd_dest=get_form_value(data, 'epd_dest'); animal.epd_leche=get_form_value(data, 'epd_leche'); animal.epd_18m=get_form_value(data, 'epd_18m'); animal.epd_pa_v=get_form_value(data, 'epd_pa_v'); animal.epd_ce=get_form_value(data, 'epd_ce'); animal.epd_aob=get_form_value(data, 'epd_aob'); animal.epd_egs=get_form_value(data, 'epd_egs'); animal.epd_marb=get_form_value(data, 'epd_marb'); animal.val_14m=get_form_value(data, 'val_14m'); animal.val_18m=get_form_value(data, 'val_18m'); animal.val_ternero=get_form_value(data, 'val_ternero'); animal.val_adulto=get_form_value(data, 'val_adulto')
 
         db.session.commit()
@@ -380,6 +376,9 @@ def actualizar_epds_excel():
                 for excel_col, db_field in COLUMN_MAP.items():
                     if excel_col in row and not pd.isnull(row[excel_col]):
                         setattr(animal, db_field, str(row[excel_col]))
+                
+                # ✅ CORREGIDO: Se añade el animal a la sesión para asegurar que se guarde.
+                db.session.add(animal)
                 actualizados += 1
             else:
                 no_encontrados.append(rp)
@@ -392,7 +391,6 @@ def actualizar_epds_excel():
 
     return render_template('actualizar_epds_excel.html')
 
-# El bloque __main__ se deja para pruebas locales. Gunicorn no lo ejecutará.
 if __name__ == '__main__':
     app.run(debug=True)
 
