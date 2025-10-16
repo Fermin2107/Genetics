@@ -39,7 +39,7 @@ class Raza(db.Model):
 class Animal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     raza_id = db.Column(db.Integer, db.ForeignKey('raza.id'), nullable=False)
-    rp = db.Column(db.String(50), nullable=False)
+    rp = db.Column(db.String(50), nullable=True) # Permitir RP nulo temporalmente
     hba = db.Column(db.String(50))
     nombre = db.Column(db.String(100))
     sexo = db.Column(db.String(10))
@@ -94,7 +94,6 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 def get_form_value(data, key, numeric=False):
-    """Helper para limpiar y convertir valores del formulario."""
     val = (data.get(key, '') or '').strip()
     if not val or val.lower() == 'none':
         return None
@@ -106,7 +105,6 @@ def get_form_value(data, key, numeric=False):
     return val
 
 def get_form_date(data, key):
-    """Helper para convertir fechas del formulario."""
     val = data.get(key, '').strip()
     if not val:
         return None
@@ -213,14 +211,19 @@ def ver_raza(raza_id):
     raza = Raza.query.filter_by(id=raza_id, user_id=current_user.id).first_or_404()
     animales = Animal.query.filter_by(raza_id=raza.id).all()
     
+    # ✅ CORREGIDO: Función de ordenamiento robusta que maneja RPs nulos o vacíos.
     def rp_key(animal):
+        if not animal.rp:
+            return (2, "") # Pone los nulos/vacíos al final
+        
         rp_str = str(animal.rp).strip()
         if rp_str.isdigit():
-            return (0, int(rp_str))
-        return (1, rp_str)
-    
+            return (0, int(rp_str)) # Primero los numéricos
+        
+        return (1, rp_str.upper()) # Luego el resto, alfabéticamente
+
     orden = request.args.get('orden', 'asc')
-    animales.sort(key=rp_key, reverse=(orden == 'desc'))
+    animales = sorted(animales, key=rp_key, reverse=(orden == 'desc'))
 
     return render_template('raza.html', raza=raza, animales=animales, total=len(animales), orden=orden)
 
@@ -232,13 +235,15 @@ def registrar_animal(raza_id):
         data = request.form
         rp = get_form_value(data, 'rp')
         if not rp:
-            flash('El campo RP es obligatorio.', 'danger')
-            return render_template('registrar.html', raza=raza)
-        
-        existe = Animal.query.filter_by(rp=rp, raza_id=raza.id).first()
-        if existe:
-            flash(f'Ya existe un animal con el RP "{rp}" en esta raza.', 'warning')
-            return render_template('registrar.html', raza=raza, form_data=data)
+            # Ahora el RP no es estrictamente obligatorio, se puede dejar nulo.
+            # Pero si existe, debe ser único.
+            pass
+
+        if rp:
+            existe = Animal.query.filter_by(rp=rp, raza_id=raza.id).first()
+            if existe:
+                flash(f'Ya existe un animal con el RP "{rp}" en esta raza.', 'warning')
+                return render_template('registrar.html', raza=raza, form_data=data)
 
         nuevo_animal = Animal(
             raza_id=raza.id, rp=rp, hba=get_form_value(data, 'hba'), nombre=get_form_value(data, 'nombre'),
@@ -262,7 +267,7 @@ def registrar_animal(raza_id):
         )
         db.session.add(nuevo_animal)
         db.session.commit()
-        flash(f'Animal con RP "{rp}" registrado con éxito.', 'success')
+        flash(f'Animal registrado con éxito.', 'success')
         return redirect(url_for('ver_raza', raza_id=raza.id))
     return render_template('registrar.html', raza=raza)
     
@@ -309,11 +314,13 @@ def buscar_animales(raza_id):
     animales = query.all()
 
     def rp_key(animal):
+        if not animal.rp:
+            return (2, "")
         rp = animal.rp
         if rp.isdigit():
             return (0, int(rp))
         else:
-            return (1, rp)
+            return (1, rp.upper())
 
     orden = filtros.get('orden', 'asc')
     animales = sorted(animales, key=rp_key, reverse=(orden == 'desc'))
@@ -321,17 +328,17 @@ def buscar_animales(raza_id):
     cantidad = len(animales)
     return render_template('buscar.html', animales=animales, cantidad=cantidad, raza=raza)
 
-@app.route('/animal/<int:animal_id>')
+# ✅ CORREGIDO: Las rutas ahora usan 'id' para ser consistentes con las plantillas.
+@app.route('/animal/<int:id>')
 @login_required
-def ficha_animal(animal_id):
-    animal = Animal.query.get_or_404(animal_id)
+def ficha_animal(id):
+    animal = Animal.query.get_or_404(id)
     if animal.raza.user_id != current_user.id:
         flash('No tienes permiso para ver este animal.', 'danger')
         return redirect(url_for('razas'))
     
-    # Búsqueda de hijos mejorada: por RP (más único) y dentro de las razas del usuario
     hijos = []
-    if animal.rp: # Solo buscar hijos si el animal tiene un RP
+    if animal.rp: 
         hijos = Animal.query.filter(
             Animal.raza_id.in_([r.id for r in current_user.razas]),
             (Animal.padre == animal.rp) | (Animal.madre == animal.rp)
@@ -339,16 +346,17 @@ def ficha_animal(animal_id):
         
     return render_template('ficha.html', animal=animal, hijos=hijos)
 
-@app.route('/animal/<int:animal_id>/editar', methods=['GET', 'POST'])
+@app.route('/animal/<int:id>/editar', methods=['GET', 'POST'])
 @login_required
-def editar_animal(animal_id):
-    animal = Animal.query.get_or_404(animal_id)
+def editar_animal(id):
+    animal = Animal.query.get_or_404(id)
     if animal.raza.user_id != current_user.id:
         flash('No tienes permiso para editar este animal.', 'danger')
         return redirect(url_for('razas'))
     
     if request.method == 'POST':
         data = request.form
+        # ... (código para actualizar todos los campos)
         animal.rp = get_form_value(data, 'rp')
         animal.hba = get_form_value(data, 'hba')
         animal.nombre = get_form_value(data, 'nombre')
@@ -397,14 +405,14 @@ def editar_animal(animal_id):
         
         db.session.commit()
         flash('Animal actualizado correctamente.', 'success')
-        return redirect(url_for('ficha_animal', animal_id=animal.id))
+        return redirect(url_for('ficha_animal', id=animal.id))
         
     return render_template('editar.html', animal=animal)
 
-@app.route('/animal/<int:animal_id>/eliminar', methods=['POST'])
+@app.route('/animal/<int:id>/eliminar', methods=['POST'])
 @login_required
-def eliminar_animal(animal_id):
-    animal = Animal.query.get_or_404(animal_id)
+def eliminar_animal(id):
+    animal = Animal.query.get_or_404(id)
     if animal.raza.user_id != current_user.id:
         flash('No tienes permiso para eliminar este animal.', 'danger')
         return redirect(url_for('razas'))
@@ -434,7 +442,7 @@ def actualizar_epds_excel():
 
         try:
             file_content = archivo.read()
-            archivo.seek(0) # Rebobinar para la segunda lectura
+            archivo.seek(0)
             df_raw = pd.read_excel(io.BytesIO(file_content), engine='openpyxl', header=None)
             
             header_row_idx = None
@@ -469,7 +477,6 @@ def actualizar_epds_excel():
             if not rp:
                 continue
 
-            # **CORRECCIÓN DE SEGURIDAD CRÍTICA**: Busca animales solo dentro de las razas del usuario actual.
             animal = Animal.query.join(Raza).filter(
                 Animal.rp == rp,
                 Raza.user_id == current_user.id
