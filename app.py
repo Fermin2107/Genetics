@@ -202,7 +202,6 @@ def eliminar_raza(raza_id):
 def ver_raza(raza_id):
     raza = Raza.query.filter_by(id=raza_id, user_id=current_user.id).first_or_404()
     
-    # ✅ CORREGIDO: La lógica de filtrado ahora está aquí.
     query = Animal.query.filter_by(raza_id=raza.id)
     filtros = request.args
 
@@ -299,12 +298,15 @@ def ficha_animal(id):
     if animal.raza.user_id != current_user.id:
         flash('No tienes permiso para ver este animal.', 'danger')
         return redirect(url_for('razas'))
+    
     hijos = []
-    if animal.rp: 
+    # ✅ CORREGIDO: Busca hijos por el NOMBRE del animal, no por el RP.
+    if animal.nombre:
         hijos = Animal.query.filter(
             Animal.raza_id.in_([r.id for r in current_user.razas]),
-            (Animal.padre == animal.rp) | (Animal.madre == animal.rp)
+            (Animal.padre == animal.nombre) | (Animal.madre == animal.nombre)
         ).all()
+        
     return render_template('ficha.html', animal=animal, hijos=hijos)
 
 @app.route('/animal/<int:id>/editar', methods=['GET', 'POST'])
@@ -336,60 +338,59 @@ def eliminar_animal(id):
     flash('Animal eliminado correctamente.', 'success')
     return redirect(url_for('ver_raza', raza_id=raza_id))
 
-@app.route('/actualizar_epds_excel', methods=['GET', 'POST'])
+@app.route('/raza/<int:raza_id>/actualizar_epds_excel', methods=['POST'])
 @login_required
-def actualizar_epds_excel():
-    if request.method == 'POST':
-        if 'archivo' not in request.files or request.files['archivo'].filename == '':
-            flash('No se seleccionó ningún archivo.', 'danger')
-            return redirect(request.url)
+def actualizar_epds_excel(raza_id):
+    raza = Raza.query.filter_by(id=raza_id, user_id=current_user.id).first_or_404()
 
-        archivo = request.files['archivo']
-        COLUMN_MAP = {'Peso al NACER': 'epd_nac', 'Peso al DESTETE': 'epd_dest', 'Peso 18 MESES': 'epd_18m', 'Peso Adulto Vaca': 'epd_pa_v', 'Cir. Esc.': 'epd_ce', 'Habilidad Lechera': 'epd_leche', 'AOB': 'epd_aob', 'EGS': 'epd_egs', 'MARB': 'epd_marb'}
+    if 'archivo' not in request.files or request.files['archivo'].filename == '':
+        flash('No se seleccionó ningún archivo.', 'danger')
+        return redirect(url_for('ver_raza', raza_id=raza_id))
 
-        try:
-            file_content = archivo.read(); archivo.seek(0)
-            df_raw = pd.read_excel(io.BytesIO(file_content), engine='openpyxl', header=None)
-            header_row_idx = next((idx for idx, row in df_raw.iterrows() if any(str(cell).strip().upper() == "RP" for cell in row)), None)
-            if header_row_idx is None:
-                flash('No se encontró la columna "RP" en el archivo Excel.', 'danger')
-                return redirect(request.url)
-            df = pd.read_excel(io.BytesIO(file_content), engine='openpyxl', header=header_row_idx)
-            if "RP" not in df.columns:
-                flash('La fila de encabezado detectada no contiene la columna "RP".', 'danger')
-                return redirect(request.url)
-        except Exception as e:
-            flash(f'Error al procesar el archivo Excel: {e}', 'danger')
-            return redirect(request.url)
+    archivo = request.files['archivo']
+    COLUMN_MAP = {'Peso al NACER': 'epd_nac', 'Peso al DESTETE': 'epd_dest', 'Peso 18 MESES': 'epd_18m', 'Peso Adulto Vaca': 'epd_pa_v', 'Cir. Esc.': 'epd_ce', 'Habilidad Lechera': 'epd_leche', 'AOB': 'epd_aob', 'EGS': 'epd_egs', 'MARB': 'epd_marb'}
 
-        actualizados, no_encontrados = 0, []
-        def clean_rp(val):
-            if pd.isnull(val): return ''
-            if isinstance(val, (int, float)): return str(int(val))
-            return str(val).strip()
+    try:
+        file_content = archivo.read(); archivo.seek(0)
+        df_raw = pd.read_excel(io.BytesIO(file_content), engine='openpyxl', header=None)
+        header_row_idx = next((idx for idx, row in df_raw.iterrows() if any(str(cell).strip().upper() == "RP" for cell in row)), None)
+        if header_row_idx is None:
+            flash('No se encontró la columna "RP" en el archivo Excel.', 'danger')
+            return redirect(url_for('ver_raza', raza_id=raza_id))
+        df = pd.read_excel(io.BytesIO(file_content), engine='openpyxl', header=header_row_idx)
+        if "RP" not in df.columns:
+            flash('La fila de encabezado detectada no contiene la columna "RP".', 'danger')
+            return redirect(url_for('ver_raza', raza_id=raza_id))
+    except Exception as e:
+        flash(f'Error al procesar el archivo Excel: {e}', 'danger')
+        return redirect(url_for('ver_raza', raza_id=raza_id))
 
-        for index, row in df.iterrows():
-            rp = clean_rp(row.get('RP'))
-            if not rp: continue
-            animal = Animal.query.join(Raza).filter(Animal.rp == rp, Raza.user_id == current_user.id).first()
-            if animal:
-                for excel_col, db_field in COLUMN_MAP.items():
-                    if excel_col in row and not pd.isnull(row[excel_col]):
-                        setattr(animal, db_field, str(row[excel_col]))
-                
-                # ✅ CORREGIDO: Se añade el animal a la sesión para asegurar que se guarde.
-                db.session.add(animal)
-                actualizados += 1
-            else:
-                no_encontrados.append(rp)
+    actualizados, no_encontrados = 0, []
+    def clean_rp(val):
+        if pd.isnull(val): return ''
+        if isinstance(val, (int, float)): return str(int(val))
+        return str(val).strip()
 
-        db.session.commit()
-        flash(f'Proceso completado. Se actualizaron {actualizados} animales.', 'success')
-        if no_encontrados:
-            flash(f'ADVERTENCIA: No se encontraron los siguientes RPs: {", ".join(no_encontrados)}', 'warning')
-        return redirect(url_for('razas'))
+    for index, row in df.iterrows():
+        rp = clean_rp(row.get('RP'))
+        if not rp: continue
+        animal = Animal.query.filter_by(rp=rp, raza_id=raza.id).first()
+        if animal:
+            for excel_col, db_field in COLUMN_MAP.items():
+                if excel_col in row and not pd.isnull(row[excel_col]):
+                    setattr(animal, db_field, str(row[excel_col]))
+            
+            db.session.add(animal)
+            actualizados += 1
+        else:
+            no_encontrados.append(rp)
 
-    return render_template('actualizar_epds_excel.html')
+    db.session.commit()
+    flash(f'Proceso completado. Se actualizaron {actualizados} animales.', 'success')
+    if no_encontrados:
+        flash(f'ADVERTENCIA: No se encontraron los siguientes RPs: {", ".join(no_encontrados)}', 'warning')
+    
+    return redirect(url_for('ver_raza', raza_id=raza_id))
 
 if __name__ == '__main__':
     app.run(debug=True)
