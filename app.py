@@ -4,24 +4,25 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user, UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+import io
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://animalesdb_user:z1xIETnjgzHv4GZXEDNQlRC9Cq0tDJfX@dpg-d29unpndiees738f42u0-a.oregon-postgres.render.com/animalesdb_6g2y'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'secreto_muy_fuerte'
+app.config['SECRET_KEY'] = 'secreto_muy_fuerte' # Para producción, es mejor usar una variable de entorno
 
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
-# MODELOS
+# --- MODELOS ---
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
-    razas = db.relationship('Raza', backref='usuario', lazy=True)
+    razas = db.relationship('Raza', backref='usuario', lazy=True, cascade="all, delete-orphan")
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -32,7 +33,7 @@ class Raza(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(50), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    animales = db.relationship('Animal', backref='raza', lazy=True)
+    animales = db.relationship('Animal', backref='raza', lazy=True, cascade="all, delete-orphan")
     __table_args__ = (db.UniqueConstraint('nombre', 'user_id', name='uq_raza_nombre_user'),)
 
 class Animal(db.Model):
@@ -86,34 +87,55 @@ class Animal(db.Model):
     val_adulto = db.Column(db.String(100))
     __table_args__ = (db.UniqueConstraint('rp', 'raza_id', name='uq_animal_rp_raza'),)
 
+# --- CONFIGURACIÓN DE LOGIN Y HELPERS ---
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-def fix_decimal(val):
-    val = (val or '').strip()
-    return val.replace(',', '.') if val else None
+def get_form_value(data, key, numeric=False):
+    """Helper para limpiar y convertir valores del formulario."""
+    val = (data.get(key, '') or '').strip()
+    if not val or val.lower() == 'none':
+        return None
+    if numeric:
+        try:
+            return float(val.replace(',', '.'))
+        except (ValueError, TypeError):
+            return None
+    return val
 
-# RUTAS DE USUARIO
+def get_form_date(data, key):
+    """Helper para convertir fechas del formulario."""
+    val = data.get(key, '').strip()
+    if not val:
+        return None
+    try:
+        return datetime.strptime(val, '%Y-%m-%d').date()
+    except ValueError:
+        flash(f'Formato de fecha incorrecto para el campo {key}. Use AAAA-MM-DD.', 'danger')
+        return None
+
+# --- RUTAS DE USUARIO ---
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('razas'))
     if request.method == 'POST':
-        username = request.form['username'].strip().lower()
-        password = request.form['password']
+        username = request.form.get('username', '').strip().lower()
+        password = request.form.get('password', '')
         if not username or not password:
             flash('Usuario y contraseña requeridos.', 'danger')
             return render_template('register.html')
         if User.query.filter_by(username=username).first():
-            flash('El usuario ya existe.', 'warning')
+            flash('El nombre de usuario ya existe.', 'warning')
             return render_template('register.html')
         user = User(username=username)
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
-        flash('Registro exitoso, ahora puedes iniciar sesión.', 'success')
+        flash('Registro exitoso. Ahora puedes iniciar sesión.', 'success')
         return redirect(url_for('login'))
     return render_template('register.html')
 
@@ -122,12 +144,11 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('razas'))
     if request.method == 'POST':
-        username = request.form['username'].strip().lower()
-        password = request.form['password']
+        username = request.form.get('username', '').strip().lower()
+        password = request.form.get('password', '')
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
             login_user(user)
-            flash('Bienvenido.', 'success')
             return redirect(url_for('razas'))
         else:
             flash('Usuario o contraseña inválidos.', 'danger')
@@ -137,10 +158,10 @@ def login():
 @login_required
 def logout():
     logout_user()
-    flash('Sesión cerrada.', 'info')
+    flash('Has cerrado sesión.', 'info')
     return redirect(url_for('login'))
 
-# RUTAS DE APP
+# --- RUTAS DE LA APLICACIÓN (RAZAS Y ANIMALES) ---
 
 @app.route('/')
 @login_required
@@ -150,8 +171,8 @@ def index():
 @app.route('/razas')
 @login_required
 def razas():
-    razas = Raza.query.filter_by(user_id=current_user.id).order_by(Raza.nombre.asc()).all()
-    return render_template('razas.html', razas=razas)
+    razas_usuario = Raza.query.filter_by(user_id=current_user.id).order_by(Raza.nombre.asc()).all()
+    return render_template('razas.html', razas=razas_usuario)
 
 @app.route('/agregar_raza', methods=['GET', 'POST'])
 @login_required
@@ -159,12 +180,16 @@ def agregar_raza():
     if request.method == 'POST':
         nombre = request.form.get('nombre', '').strip().capitalize()
         if not nombre:
-            flash('Nombre no válido.', 'danger')
+            flash('El nombre de la raza no puede estar vacío.', 'danger')
             return render_template('agregar_raza.html')
-        if Raza.query.filter_by(nombre=nombre, user_id=current_user.id).first():
-            flash('La raza ya existe.', 'warning')
+        
+        existe = Raza.query.filter_by(nombre=nombre, user_id=current_user.id).first()
+        if existe:
+            flash('Ya tienes una raza con ese nombre.', 'warning')
             return render_template('agregar_raza.html')
-        db.session.add(Raza(nombre=nombre, user_id=current_user.id))
+        
+        nueva_raza = Raza(nombre=nombre, user_id=current_user.id)
+        db.session.add(nueva_raza)
         db.session.commit()
         flash('Raza agregada correctamente.', 'success')
         return redirect(url_for('razas'))
@@ -175,48 +200,27 @@ def agregar_raza():
 def eliminar_raza(raza_id):
     raza = Raza.query.filter_by(id=raza_id, user_id=current_user.id).first_or_404()
     if raza.animales:
-        flash('No se puede eliminar la raza porque tiene animales registrados.', 'danger')
+        flash('No se puede eliminar una raza que tiene animales registrados. Elimine primero los animales.', 'danger')
     else:
         db.session.delete(raza)
         db.session.commit()
-        flash('Raza eliminada.', 'success')
+        flash('Raza eliminada correctamente.', 'success')
     return redirect(url_for('razas'))
 
 @app.route('/raza/<int:raza_id>')
 @login_required
 def ver_raza(raza_id):
     raza = Raza.query.filter_by(id=raza_id, user_id=current_user.id).first_or_404()
-    query = Animal.query.filter_by(raza_id=raza_id)
-    sexo = request.args.get('sexo')
-    if sexo:
-        query = query.filter_by(sexo=sexo)
-
-    def filtrar_rango(query, campo, numeric=False):
-        min_val = request.args.get(f'{campo}_min')
-        max_val = request.args.get(f'{campo}_max')
-        if numeric:
-            try:
-                if min_val: min_val = float(min_val.replace(',', '.'))
-                if max_val: max_val = float(max_val.replace(',', '.'))
-            except Exception: min_val = max_val = None
-        if min_val is not None and min_val != '':
-            query = query.filter(getattr(Animal, campo) >= min_val)
-        if max_val is not None and max_val != '':
-            query = query.filter(getattr(Animal, campo) <= max_val)
-        return query
-
-    for campo in ['pezuñas', 'articulacion', 'clase']:
-        query = filtrar_rango(query, campo, numeric=True)
-
-    animales = query.all()
-    orden = request.args.get('orden', 'asc')
+    animales = Animal.query.filter_by(raza_id=raza.id).all()
+    
     def rp_key(animal):
-        rp = animal.rp
-        if rp.isdigit():
-            return (0, int(rp))
-        else:
-            return (1, rp)
-    animales = sorted(animales, key=rp_key, reverse=(orden == 'desc'))
+        rp_str = str(animal.rp).strip()
+        if rp_str.isdigit():
+            return (0, int(rp_str))
+        return (1, rp_str)
+    
+    orden = request.args.get('orden', 'asc')
+    animales.sort(key=rp_key, reverse=(orden == 'desc'))
 
     return render_template('raza.html', raza=raza, animales=animales, total=len(animales), orden=orden)
 
@@ -226,81 +230,42 @@ def registrar_animal(raza_id):
     raza = Raza.query.filter_by(id=raza_id, user_id=current_user.id).first_or_404()
     if request.method == 'POST':
         data = request.form
-        def get_val(key, numeric=False):
-            val = (data.get(key, '') or '').strip()
-            if not val or val.lower() == 'none':
-                return None
-            if numeric:
-                try:
-                    return float(val.replace(',', '.'))
-                except ValueError:
-                    return None
-            return val
-        def get_date(key):
-            val = data.get(key, '').strip()
-            try: return datetime.strptime(val, '%Y-%m-%d') if val else None
-            except ValueError: flash(f'Formato de fecha incorrecto para {key}.', 'danger'); return None
-        rp = get_val('rp')
+        rp = get_form_value(data, 'rp')
         if not rp:
-            flash('El RP es obligatorio.', 'danger')
+            flash('El campo RP es obligatorio.', 'danger')
             return render_template('registrar.html', raza=raza)
-        if Animal.query.filter_by(rp=rp, raza_id=raza.id).first():
-            flash('Animal con ese RP ya registrado.', 'warning')
-            return render_template('registrar.html', raza=raza)
+        
+        existe = Animal.query.filter_by(rp=rp, raza_id=raza.id).first()
+        if existe:
+            flash(f'Ya existe un animal con el RP "{rp}" en esta raza.', 'warning')
+            return render_template('registrar.html', raza=raza, form_data=data)
+
         nuevo_animal = Animal(
-            raza_id=raza.id,
-            rp=rp,
-            hba=get_val('hba'),
-            nombre=get_val('nombre'),
-            sexo=get_val('sexo'),
-            fecha_nac=get_date('fecha_nac'),
-            nacimiento=get_val('nacimiento'),
-            color=get_val('color'),
-            padre=get_val('padre'),
-            madre=get_val('madre'),
-            abuelo_paterno=get_val('abuelo_paterno'),
-            abuelo_materno=get_val('abuelo_materno'),
-            familia=get_val('familia'),
-            f=get_val('f'),
-            tamano=get_val('tamano'),
-            pezuñas=get_val('pezuñas', numeric=True),
-            articulacion=get_val('articulacion', numeric=True),
-            ap_delanteros=get_val('ap_delanteros'),
-            ap_traseros=get_val('ap_traseros'),
-            curv_garrones=get_val('curv_garrones'),
-            apert_posterior=get_val('apert_posterior'),
-            ubres_pezones=get_val('ubres_pezones'),
-            forma_testicular=get_val('forma_testicular'),
-            desplazamiento=get_val('desplazamiento'),
-            clase=get_val('clase', numeric=True),
-            impresion_general=get_val('impresion_general'),
-            musculatura=get_val('musculatura'),
-            anchura=get_val('anchura'),
-            costilla=get_val('costilla'),
-            docilidad=get_val('docilidad'),
-            valoracion=get_val('valoracion'),
-            observaciones=get_val('observaciones'),
-            premios=get_val('premios'),
-            epd_nac=get_val('epd_nac'),
-            epd_dest=get_val('epd_dest'),
-            epd_leche=get_val('epd_leche'),
-            epd_18m=get_val('epd_18m'),
-            epd_pa_v=get_val('epd_pa_v'),
-            epd_ce=get_val('epd_ce'),
-            epd_aob=get_val('epd_aob'),
-            epd_egs=get_val('epd_egs'),
-            epd_marb=get_val('epd_marb'),
-            val_14m=get_val('val_14m'),
-            val_18m=get_val('val_18m'),
-            val_ternero=get_val('val_ternero'),
-            val_adulto=get_val('val_adulto')
+            raza_id=raza.id, rp=rp, hba=get_form_value(data, 'hba'), nombre=get_form_value(data, 'nombre'),
+            sexo=get_form_value(data, 'sexo'), fecha_nac=get_form_date(data, 'fecha_nac'), nacimiento=get_form_value(data, 'nacimiento'),
+            color=get_form_value(data, 'color'), padre=get_form_value(data, 'padre'), madre=get_form_value(data, 'madre'),
+            abuelo_paterno=get_form_value(data, 'abuelo_paterno'), abuelo_materno=get_form_value(data, 'abuelo_materno'),
+            familia=get_form_value(data, 'familia'), f=get_form_value(data, 'f'), tamano=get_form_value(data, 'tamano'),
+            pezuñas=get_form_value(data, 'pezuñas', numeric=True), articulacion=get_form_value(data, 'articulacion', numeric=True),
+            ap_delanteros=get_form_value(data, 'ap_delanteros'), ap_traseros=get_form_value(data, 'ap_traseros'),
+            curv_garrones=get_form_value(data, 'curv_garrones'), apert_posterior=get_form_value(data, 'apert_posterior'),
+            ubres_pezones=get_form_value(data, 'ubres_pezones'), forma_testicular=get_form_value(data, 'forma_testicular'),
+            desplazamiento=get_form_value(data, 'desplazamiento'), clase=get_form_value(data, 'clase', numeric=True),
+            impresion_general=get_form_value(data, 'impresion_general'), musculatura=get_form_value(data, 'musculatura'),
+            anchura=get_form_value(data, 'anchura'), costilla=get_form_value(data, 'costilla'), docilidad=get_form_value(data, 'docilidad'),
+            valoracion=get_form_value(data, 'valoracion'), observaciones=get_form_value(data, 'observaciones'),
+            premios=get_form_value(data, 'premios'), epd_nac=get_form_value(data, 'epd_nac'), epd_dest=get_form_value(data, 'epd_dest'),
+            epd_leche=get_form_value(data, 'epd_leche'), epd_18m=get_form_value(data, 'epd_18m'), epd_pa_v=get_form_value(data, 'epd_pa_v'),
+            epd_ce=get_form_value(data, 'epd_ce'), epd_aob=get_form_value(data, 'epd_aob'), epd_egs=get_form_value(data, 'epd_egs'),
+            epd_marb=get_form_value(data, 'epd_marb'), val_14m=get_form_value(data, 'val_14m'), val_18m=get_form_value(data, 'val_18m'),
+            val_ternero=get_form_value(data, 'val_ternero'), val_adulto=get_form_value(data, 'val_adulto')
         )
         db.session.add(nuevo_animal)
         db.session.commit()
-        flash('Animal registrado con éxito.', 'success')
+        flash(f'Animal con RP "{rp}" registrado con éxito.', 'success')
         return redirect(url_for('ver_raza', raza_id=raza.id))
     return render_template('registrar.html', raza=raza)
-
+    
 @app.route('/raza/<int:raza_id>/buscar', methods=['GET'])
 @login_required
 def buscar_animales(raza_id):
@@ -322,24 +287,24 @@ def buscar_animales(raza_id):
         if min_v:
             try:
                 query = query.filter(getattr(Animal, campo) >= float(min_v.replace(',', '.')))
-            except: pass
+            except (ValueError, TypeError): pass
         if max_v:
             try:
                 query = query.filter(getattr(Animal, campo) <= float(max_v.replace(',', '.')))
-            except: pass
+            except (ValueError, TypeError): pass
 
     fecha_min = filtros.get('fecha_nac_min', '').strip()
     fecha_max = filtros.get('fecha_nac_max', '').strip()
     if fecha_min:
         try:
-            fecha_min_dt = datetime.strptime(fecha_min, '%Y-%m-%d')
+            fecha_min_dt = datetime.strptime(fecha_min, '%Y-%m-%d').date()
             query = query.filter(Animal.fecha_nac >= fecha_min_dt)
-        except: pass
+        except (ValueError, TypeError): pass
     if fecha_max:
         try:
-            fecha_max_dt = datetime.strptime(fecha_max, '%Y-%m-%d')
+            fecha_max_dt = datetime.strptime(fecha_max, '%Y-%m-%d').date()
             query = query.filter(Animal.fecha_nac <= fecha_max_dt)
-        except: pass
+        except (ValueError, TypeError): pass
 
     animales = query.all()
 
@@ -356,171 +321,179 @@ def buscar_animales(raza_id):
     cantidad = len(animales)
     return render_template('buscar.html', animales=animales, cantidad=cantidad, raza=raza)
 
-@app.route('/animal/<int:id>')
+@app.route('/animal/<int:animal_id>')
 @login_required
-def ficha_animal(id):
-    animal = Animal.query.get_or_404(id)
-    if animal.raza.usuario.id != current_user.id:
+def ficha_animal(animal_id):
+    animal = Animal.query.get_or_404(animal_id)
+    if animal.raza.user_id != current_user.id:
         flash('No tienes permiso para ver este animal.', 'danger')
         return redirect(url_for('razas'))
-    # Producción: hijos donde padre o madre coinciden con el NOMBRE del animal actual
-    hijos = Animal.query.filter(
-        (Animal.padre == animal.nombre) | (Animal.madre == animal.nombre)
-    ).all()
+    
+    # Búsqueda de hijos mejorada: por RP (más único) y dentro de las razas del usuario
+    hijos = []
+    if animal.rp: # Solo buscar hijos si el animal tiene un RP
+        hijos = Animal.query.filter(
+            Animal.raza_id.in_([r.id for r in current_user.razas]),
+            (Animal.padre == animal.rp) | (Animal.madre == animal.rp)
+        ).all()
+        
     return render_template('ficha.html', animal=animal, hijos=hijos)
 
-@app.route('/animal/<int:id>/editar', methods=['GET', 'POST'])
+@app.route('/animal/<int:animal_id>/editar', methods=['GET', 'POST'])
 @login_required
-def editar_animal(id):
-    animal = Animal.query.get_or_404(id)
-    if animal.raza.usuario.id != current_user.id:
+def editar_animal(animal_id):
+    animal = Animal.query.get_or_404(animal_id)
+    if animal.raza.user_id != current_user.id:
         flash('No tienes permiso para editar este animal.', 'danger')
         return redirect(url_for('razas'))
-    raza = animal.raza
+    
     if request.method == 'POST':
         data = request.form
-        def get_val(key, numeric=False):
-            val = (data.get(key, '') or '').strip()
-            if not val or val.lower() == 'none':
-                return None
-            if numeric:
-                try:
-                    return float(val.replace(',', '.'))
-                except ValueError:
-                    return None
-            return val
-        def get_date(key):
-            val = data.get(key, '').strip()
-            try: return datetime.strptime(val, '%Y-%m-%d') if val else None
-            except: flash(f'Formato de fecha incorrecto para {key}.', 'danger'); return None
-        animal.rp = get_val('rp')
-        animal.hba = get_val('hba')
-        animal.nombre = get_val('nombre')
-        animal.sexo = get_val('sexo')
-        animal.fecha_nac = get_date('fecha_nac')
-        animal.nacimiento = get_val('nacimiento')
-        animal.color = get_val('color')
-        animal.padre = get_val('padre')
-        animal.madre = get_val('madre')
-        animal.abuelo_paterno = get_val('abuelo_paterno')
-        animal.abuelo_materno = get_val('abuelo_materno')
-        animal.familia = get_val('familia')
-        animal.f = get_val('f')
-        animal.tamano = get_val('tamano')
-        animal.pezuñas = get_val('pezuñas', numeric=True)
-        animal.articulacion = get_val('articulacion', numeric=True)
-        animal.ap_delanteros = get_val('ap_delanteros')
-        animal.ap_traseros = get_val('ap_traseros')
-        animal.curv_garrones = get_val('curv_garrones')
-        animal.apert_posterior = get_val('apert_posterior')
-        animal.ubres_pezones = get_val('ubres_pezones')
-        animal.forma_testicular = get_val('forma_testicular')
-        animal.desplazamiento = get_val('desplazamiento')
-        animal.clase = get_val('clase', numeric=True)
-        animal.impresion_general = get_val('impresion_general')
-        animal.musculatura = get_val('musculatura')
-        animal.anchura = get_val('anchura')
-        animal.costilla = get_val('costilla')
-        animal.docilidad = get_val('docilidad')
-        animal.valoracion = get_val('valoracion')
-        animal.observaciones = get_val('observaciones')
-        animal.premios = get_val('premios')
-        animal.epd_nac = get_val('epd_nac')
-        animal.epd_dest = get_val('epd_dest')
-        animal.epd_leche = get_val('epd_leche')
-        animal.epd_18m = get_val('epd_18m')
-        animal.epd_pa_v = get_val('epd_pa_v')
-        animal.epd_ce = get_val('epd_ce')
-        animal.epd_aob = get_val('epd_aob')
-        animal.epd_egs = get_val('epd_egs')
-        animal.epd_marb = get_val('epd_marb')
-        animal.val_14m = get_val('val_14m')
-        animal.val_18m = get_val('val_18m')
-        animal.val_ternero = get_val('val_ternero')
-        animal.val_adulto = get_val('val_adulto')
+        animal.rp = get_form_value(data, 'rp')
+        animal.hba = get_form_value(data, 'hba')
+        animal.nombre = get_form_value(data, 'nombre')
+        animal.sexo = get_form_value(data, 'sexo')
+        animal.fecha_nac = get_form_date(data, 'fecha_nac')
+        animal.nacimiento = get_form_value(data, 'nacimiento')
+        animal.color = get_form_value(data, 'color')
+        animal.padre = get_form_value(data, 'padre')
+        animal.madre = get_form_value(data, 'madre')
+        animal.abuelo_paterno = get_form_value(data, 'abuelo_paterno')
+        animal.abuelo_materno = get_form_value(data, 'abuelo_materno')
+        animal.familia = get_form_value(data, 'familia')
+        animal.f = get_form_value(data, 'f')
+        animal.tamano = get_form_value(data, 'tamano')
+        animal.pezuñas = get_form_value(data, 'pezuñas', numeric=True)
+        animal.articulacion = get_form_value(data, 'articulacion', numeric=True)
+        animal.ap_delanteros = get_form_value(data, 'ap_delanteros')
+        animal.ap_traseros = get_form_value(data, 'ap_traseros')
+        animal.curv_garrones = get_form_value(data, 'curv_garrones')
+        animal.apert_posterior = get_form_value(data, 'apert_posterior')
+        animal.ubres_pezones = get_form_value(data, 'ubres_pezones')
+        animal.forma_testicular = get_form_value(data, 'forma_testicular')
+        animal.desplazamiento = get_form_value(data, 'desplazamiento')
+        animal.clase = get_form_value(data, 'clase', numeric=True)
+        animal.impresion_general = get_form_value(data, 'impresion_general')
+        animal.musculatura = get_form_value(data, 'musculatura')
+        animal.anchura = get_form_value(data, 'anchura')
+        animal.costilla = get_form_value(data, 'costilla')
+        animal.docilidad = get_form_value(data, 'docilidad')
+        animal.valoracion = get_form_value(data, 'valoracion')
+        animal.observaciones = get_form_value(data, 'observaciones')
+        animal.premios = get_form_value(data, 'premios')
+        animal.epd_nac = get_form_value(data, 'epd_nac')
+        animal.epd_dest = get_form_value(data, 'epd_dest')
+        animal.epd_leche = get_form_value(data, 'epd_leche')
+        animal.epd_18m = get_form_value(data, 'epd_18m')
+        animal.epd_pa_v = get_form_value(data, 'epd_pa_v')
+        animal.epd_ce = get_form_value(data, 'epd_ce')
+        animal.epd_aob = get_form_value(data, 'epd_aob')
+        animal.epd_egs = get_form_value(data, 'epd_egs')
+        animal.epd_marb = get_form_value(data, 'epd_marb')
+        animal.val_14m = get_form_value(data, 'val_14m')
+        animal.val_18m = get_form_value(data, 'val_18m')
+        animal.val_ternero = get_form_value(data, 'val_ternero')
+        animal.val_adulto = get_form_value(data, 'val_adulto')
+        
         db.session.commit()
         flash('Animal actualizado correctamente.', 'success')
-        return redirect(url_for('ficha_animal', id=animal.id))
-    return render_template('editar.html', animal=animal, raza=raza)
+        return redirect(url_for('ficha_animal', animal_id=animal.id))
+        
+    return render_template('editar.html', animal=animal)
 
-@app.route('/animal/<int:id>/eliminar', methods=['POST'])
+@app.route('/animal/<int:animal_id>/eliminar', methods=['POST'])
 @login_required
-def eliminar_animal(id):
-    animal = Animal.query.get_or_404(id)
-    if animal.raza.usuario.id != current_user.id:
+def eliminar_animal(animal_id):
+    animal = Animal.query.get_or_404(animal_id)
+    if animal.raza.user_id != current_user.id:
         flash('No tienes permiso para eliminar este animal.', 'danger')
         return redirect(url_for('razas'))
+    
     raza_id = animal.raza_id
     db.session.delete(animal)
     db.session.commit()
     flash('Animal eliminado correctamente.', 'success')
     return redirect(url_for('ver_raza', raza_id=raza_id))
 
-
-
 @app.route('/actualizar_epds_excel', methods=['GET', 'POST'])
 @login_required
 def actualizar_epds_excel():
-    import pandas as pd
-
-    def clean_rp(val):
-        if pd.isnull(val):
-            return ''
-        if isinstance(val, float) and val.is_integer():
-            return str(int(val))
-        return str(val).strip()
-
     if request.method == 'POST':
-        archivo = request.files['archivo']
-        nombre = archivo.filename
+        if 'archivo' not in request.files or request.files['archivo'].filename == '':
+            flash('No se seleccionó ningún archivo.', 'danger')
+            return redirect(request.url)
 
-        # Busca header automático
-        df_raw = pd.read_excel(archivo, engine='openpyxl', header=None)
-        header_row_idx = None
-        for idx, row in df_raw.iterrows():
-            if any(str(cell).strip().upper() == "RP" for cell in row):
-                header_row_idx = idx
-                break
-        archivo.seek(0)
-        df = pd.read_excel(archivo, engine='openpyxl', header=header_row_idx)
-        print("Columnas detectadas:", df.columns.tolist())
+        archivo = request.files['archivo']
+        
+        COLUMN_MAP = {
+            'Peso al NACER': 'epd_nac', 'Peso al DESTETE': 'epd_dest',
+            'Peso 18 MESES': 'epd_18m', 'Peso Adulto Vaca': 'epd_pa_v',
+            'Cir. Esc.': 'epd_ce', 'Habilidad Lechera': 'epd_leche',
+            'AOB': 'epd_aob', 'EGS': 'epd_egs', 'MARB': 'epd_marb',
+        }
+
+        try:
+            file_content = archivo.read()
+            archivo.seek(0) # Rebobinar para la segunda lectura
+            df_raw = pd.read_excel(io.BytesIO(file_content), engine='openpyxl', header=None)
+            
+            header_row_idx = None
+            for idx, row in df_raw.iterrows():
+                if any(str(cell).strip().upper() == "RP" for cell in row):
+                    header_row_idx = idx
+                    break
+            
+            if header_row_idx is None:
+                flash('No se encontró la columna "RP" en el archivo Excel.', 'danger')
+                return redirect(request.url)
+            
+            df = pd.read_excel(io.BytesIO(file_content), engine='openpyxl', header=header_row_idx)
+
+            if "RP" not in df.columns:
+                flash('La fila de encabezado detectada no contiene la columna "RP".', 'danger')
+                return redirect(request.url)
+
+        except Exception as e:
+            flash(f'Error al procesar el archivo Excel: {e}', 'danger')
+            return redirect(request.url)
 
         actualizados = 0
-        for idx, row in df.iterrows():
-            rp = clean_rp(row['RP'])
-            print(f"RP del Excel: '{rp}'")
-            animal = Animal.query.filter_by(rp=rp).first()
+        no_encontrados = []
+        def clean_rp(val):
+            if pd.isnull(val): return ''
+            if isinstance(val, (int, float)): return str(int(val))
+            return str(val).strip()
+
+        for index, row in df.iterrows():
+            rp = clean_rp(row.get('RP'))
+            if not rp:
+                continue
+
+            # **CORRECCIÓN DE SEGURIDAD CRÍTICA**: Busca animales solo dentro de las razas del usuario actual.
+            animal = Animal.query.join(Raza).filter(
+                Animal.rp == rp,
+                Raza.user_id == current_user.id
+            ).first()
+
             if animal:
-                animal.epd_nac = row.get('Peso al NACER', '')
-                animal.epd_dest = row.get('Peso al DESTETE', '')
-                animal.epd_18m = row.get('Peso 18 MESES', '')
-                animal.epd_pa_v = row.get('Peso Adulto Vaca', '')
-                animal.epd_ce = row.get('Cir. Esc.', '')
-                animal.epd_leche = row.get('Habilidad Lechera', '')
-                animal.epd_aob = row.get('AOB', '')
-                animal.epd_egs = row.get('EGS', '')
-                animal.epd_marb = row.get('MARB', '')
+                for excel_col, db_field in COLUMN_MAP.items():
+                    if excel_col in row and not pd.isnull(row[excel_col]):
+                        setattr(animal, db_field, str(row[excel_col]))
                 actualizados += 1
             else:
-                print(f"No se encontró animal con RP: '{rp}'")
+                no_encontrados.append(rp)
+
         db.session.commit()
-        flash(f'Actualizados {actualizados} animales.', 'success')
-        return redirect(url_for('actualizar_epds_excel'))
+
+        flash(f'Proceso completado. Se actualizaron {actualizados} animales.', 'success')
+        if no_encontrados:
+            flash(f'ADVERTENCIA: No se encontraron los siguientes RPs en su base de datos: {", ".join(no_encontrados)}', 'warning')
+        
+        return redirect(url_for('razas'))
+
     return render_template('actualizar_epds_excel.html')
 
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
-
-
-
-
-
-
-
-
-
-
-
-
