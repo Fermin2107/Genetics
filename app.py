@@ -300,7 +300,6 @@ def ficha_animal(id):
         return redirect(url_for('razas'))
     
     hijos = []
-    # ✅ CORREGIDO: Busca hijos por el NOMBRE del animal, no por el RP.
     if animal.nombre:
         hijos = Animal.query.filter(
             Animal.raza_id.in_([r.id for r in current_user.razas]),
@@ -318,7 +317,51 @@ def editar_animal(id):
         return redirect(url_for('razas'))
     if request.method == 'POST':
         data = request.form
-        animal.rp=get_form_value(data, 'rp'); animal.hba=get_form_value(data, 'hba'); animal.nombre=get_form_value(data, 'nombre'); animal.sexo=get_form_value(data, 'sexo'); animal.fecha_nac=get_form_date(data, 'fecha_nac'); animal.nacimiento=get_form_value(data, 'nacimiento'); animal.color=get_form_value(data, 'color'); animal.padre=get_form_value(data, 'padre'); animal.madre=get_form_value(data, 'madre'); animal.abuelo_paterno=get_form_value(data, 'abuelo_paterno'); animal.abuelo_materno=get_form_value(data, 'abuelo_materno'); animal.familia=get_form_value(data, 'familia'); animal.f=get_form_value(data, 'f'); animal.tamano=get_form_value(data, 'tamano'); animal.pezuñas=get_form_value(data, 'pezuñas', numeric=True); animal.articulacion=get_form_value(data, 'articulacion', numeric=True); animal.ap_delanteros=get_form_value(data, 'ap_delanteros'); animal.ap_traseros=get_form_value(data, 'ap_traseros'); animal.curv_garrones=get_form_value(data, 'curv_garrones'); animal.apert_posterior=get_form_value(data, 'apert_posterior'); animal.ubres_pezones=get_form_value(data, 'ubres_pezones'); animal.forma_testicular=get_form_value(data, 'forma_testicular'); animal.desplazamiento=get_form_value(data, 'desplazamiento'); animal.clase=get_form_value(data, 'clase', numeric=True); animal.impresion_general=get_form_value(data, 'impresion_general'); animal.musculatura=get_form_value(data, 'musculatura'); animal.anchura=get_form_value(data, 'anchura'); animal.costilla=get_form_value(data, 'costilla'); animal.docilidad=get_form_value(data, 'docilidad'); animal.valoracion=get_form_value(data, 'valoracion'); animal.observaciones=get_form_value(data, 'observaciones'); animal.premios=get_form_value(data, 'premios'); animal.epd_nac=get_form_value(data, 'epd_nac'); animal.epd_dest=get_form_value(data, 'epd_dest'); animal.epd_leche=get_form_value(data, 'epd_leche'); animal.epd_18m=get_form_value(data, 'epd_18m'); animal.epd_pa_v=get_form_value(data, 'epd_pa_v'); animal.epd_ce=get_form_value(data, 'epd_ce'); animal.epd_aob=get_form_value(data, 'epd_aob'); animal.epd_egs=get_form_value(data, 'epd_egs'); animal.epd_marb=get_form_value(data, 'epd_marb'); animal.val_14m=get_form_value(data, 'val_14m'); animal.val_18m=get_form_value(data, 'val_18m'); animal.val_ternero=get_form_value(data, 'val_ternero'); animal.val_adulto=get_form_value(data, 'val_adulto')
+        animal.rp = get_form_value(data, 'rp')
+        animal.hba = get_form_value(data, 'hba')
+        animal.nombre = get_form_value(data, 'nombre')
+        animal.sexo = get_form_value(data, 'sexo')
+        animal.fecha_nac = get_form_date(data, 'fecha_nac')
+        animal.nacimiento = get_form_value(data, 'nacimiento')
+        animal.color = get_form_value(data, 'color')
+        animal.padre = get_form_value(data, 'padre')
+        animal.madre = get_form_value(data, 'madre')
+        animal.abuelo_paterno = get_form_value(data, 'abuelo_paterno')
+        animal.abuelo_materno = get_form_value(data, 'abuelo_materno')
+        animal.familia = get_form_value(data, 'familia')
+        animal.f = get_form_value(data, 'f')
+        animal.tamano = get_form_value(data, 'tamano')
+        animal.pezuñas = get_form_value(data, 'pezuñas', numeric=True)
+        animal.articulacion = get_form_value(data, 'articulacion', numeric=True)
+        animal.ap_delanteros = get_form_value(data, 'ap_delanteros')
+        animal.ap_traseros = get_form_value(data, 'ap_traseros')
+        animal.curv_garrones = get_form_value(data, 'curv_garrones')
+        animal.apert_posterior = get_form_value(data, 'apert_posterior')
+        animal.ubres_pezones = get_form_value(data, 'ubres_pezones')
+        animal.forma_testicular = get_form_value(data, 'forma_testicular')
+        animal.desplazamiento = get_form_value(data, 'desplazamiento')
+        animal.clase = get_form_value(data, 'clase', numeric=True)
+        animal.impresion_general = get_form_value(data, 'impresion_general')
+        animal.musculatura = get_form_value(data, 'musculatura')
+        animal.anchura = get_form_value(data, 'anchura')
+        animal.costilla = get_form_value(data, 'costilla')
+        animal.docilidad = get_form_value(data, 'docilidad')
+        animal.valoracion = get_form_value(data, 'valoracion')
+        animal.observaciones = get_form_value(data, 'observaciones')
+        animal.premios = get_form_value(data, 'premios')
+        animal.epd_nac = get_form_value(data, 'epd_nac')
+        animal.epd_dest = get_form_value(data, 'epd_dest')
+        animal.epd_leche = get_form_value(data, 'epd_leche')
+        animal.epd_18m = get_form_value(data, 'epd_18m')
+        animal.epd_pa_v = get_form_value(data, 'epd_pa_v')
+        animal.epd_ce = get_form_value(data, 'epd_ce')
+        animal.epd_aob = get_form_value(data, 'epd_aob')
+        animal.epd_egs = get_form_value(data, 'epd_egs')
+        animal.epd_marb = get_form_value(data, 'epd_marb')
+        animal.val_14m = get_form_value(data, 'val_14m')
+        animal.val_18m = get_form_value(data, 'val_18m')
+        animal.val_ternero = get_form_value(data, 'val_ternero')
+        animal.val_adulto = get_form_value(data, 'val_adulto')
 
         db.session.commit()
         flash('Animal actualizado correctamente.', 'success')
@@ -348,7 +391,19 @@ def actualizar_epds_excel(raza_id):
         return redirect(url_for('ver_raza', raza_id=raza_id))
 
     archivo = request.files['archivo']
-    COLUMN_MAP = {'Peso al NACER': 'epd_nac', 'Peso al DESTETE': 'epd_dest', 'Peso 18 MESES': 'epd_18m', 'Peso Adulto Vaca': 'epd_pa_v', 'Cir. Esc.': 'epd_ce', 'Habilidad Lechera': 'epd_leche', 'AOB': 'epd_aob', 'EGS': 'epd_egs', 'MARB': 'epd_marb'}
+    
+    # ✅ CORREGIDO: El mapa de columnas ahora coincide con tu archivo Excel.
+    COLUMN_MAP = {
+        'DEP Peso Nacer': 'epd_nac',
+        'DEP Peso Destete': 'epd_dest',
+        'DEP Peso 18M': 'epd_18m',
+        'DEP Peso Adulto Vaca': 'epd_pa_v',
+        'DEP Circ. Escrotal': 'epd_ce',
+        'DEP Hab. Materna / Leche': 'epd_leche',
+        'DEP AOB': 'epd_aob',
+        'DEP EGS / grasa': 'epd_egs',
+        'DEP Marbling': 'epd_marb',
+    }
 
     try:
         file_content = archivo.read(); archivo.seek(0)
