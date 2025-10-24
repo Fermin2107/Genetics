@@ -214,7 +214,7 @@ def ver_raza(raza_id):
     if sexo:
         query = query.filter(Animal.sexo == sexo)
 
-    for campo in ['pezuñas', 'articulacion', 'clase']:
+    for campo in ['pezuñas', 'articulacion', 'valoracion']:
         min_v = filtros.get(f'{campo}_min', '').strip()
         max_v = filtros.get(f'{campo}_max', '').strip()
         if min_v:
@@ -449,4 +449,5 @@ def actualizar_epds_excel(raza_id):
 
 if __name__ == '__main__':
     app.run(debug=True)
+
 
