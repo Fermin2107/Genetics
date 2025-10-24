@@ -34,10 +34,10 @@
     <label for="articulacion_max">Articulación (máx):</label>
     <input type="number" step="any" name="articulacion_max" id="articulacion_max" value="{{ request.args.get('articulacion_max', '') }}">
 
-    <label for="clase_min">Clase (mín):</label>
-    <input type="number" step="any" name="clase_min" id="clase_min" value="{{ request.args.get('clase_min', '') }}">
-    <label for="clase_max">Clase (máx):</label>
-    <input type="number" step="any" name="clase_max" id="clase_max" value="{{ request.args.get('clase_max', '') }}">
+    <label for="valoracion_min">Valoracion (mín):</label>
+    <input type="number" step="any" name="valoracion_min" id="valoracion_min" value="{{ request.args.get('valoracion_min', '') }}">
+    <label for="valoracion_max">Valoracion (máx):</label>
+    <input type="number" step="any" name="valoracion_max" id="valoracion_max" value="{{ request.args.get('valoracion_max', '') }}">
 
     <button type="submit">Buscar</button>
 </form>
@@ -50,8 +50,7 @@
             <th>Nombre</th>
             <th>Padre</th>
             <th>Madre</th>
-            <th>Pezuñas</th>
-            <th>Articulación</th>
+            <th>Valoracion</th>
             <th>Clase</th>
             <th>Acciones</th>
         </tr>
@@ -63,8 +62,7 @@
             <td>{{ animal.nombre }}</td>
             <td>{{ animal.padre }}</td>
             <td>{{ animal.madre }}</td>
-            <td>{{ animal.pezuñas }}</td>
-            <td>{{ animal.articulacion }}</td>
+            <td>{{ animal.valoracion }}</td>
             <td>{{ animal.clase }}</td>
             <td>
                 <a href="{{ url_for('ficha_animal', id=animal.id) }}">Ver</a>
@@ -75,3 +73,4 @@
     </tbody>
 </table>
 {% endblock %}
+
