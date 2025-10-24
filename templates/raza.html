@@ -54,12 +54,12 @@
         <input type="number" step="any" class="form-control" name="articulacion_max" placeholder="Articulación máx" value="{{ request.args.get('articulacion_max', '') }}">
     </div>
     <div class="col-md-2">
-        <input type="number" step="any" class="form-control" name="clase_min" placeholder="Clase mín" value="{{ request.args.get('clase_min', '') }}">
+        <input type="number" step="any" class="form-control" name="valoracion_min" placeholder="Valoracion mín" value="{{ request.args.get('valoracion_min', '') }}">
     </div>
 
     <!-- Fila 3 -->
     <div class="col-md-2">
-        <input type="number" step="any" class="form-control" name="clase_max" placeholder="Clase máx" value="{{ request.args.get('clase_max', '') }}">
+        <input type="number" step="any" class="form-control" name="valoracion_max" placeholder="Valoracion máx" value="{{ request.args.get('valoracion_max', '') }}">
     </div>
     <div class="col-md-2">
         <select name="orden" class="form-select">
@@ -121,5 +121,6 @@
 
 <a href="{{ url_for('razas') }}" class="btn btn-secondary mt-3">Volver a Razas</a>
 {% endblock %}
+
 
 
