@@ -84,8 +84,7 @@
                 <th>Fecha Nac.</th>
                 <th>Padre</th>
                 <th>Madre</th>
-                <th>Pezuñas</th>
-                <th>Articulación</th>
+                <th>Valoracion</th>
                 <th>Clase</th>
                 <th>Acciones</th>
             </tr>
@@ -99,8 +98,7 @@
                 <td>{{ animal.fecha_nac.strftime('%d/%m/%Y') if animal.fecha_nac else '' }}</td>
                 <td><a href="{{ url_for('ver_raza', raza_id=raza.id, padre=animal.padre) }}">{{ animal.padre }}</a></td>
                 <td><a href="{{ url_for('ver_raza', raza_id=raza.id, madre=animal.madre) }}">{{ animal.madre }}</a></td>
-                <td>{{ animal.pezuñas }}</td>
-                <td>{{ animal.articulacion }}</td>
+                <td>{{ animal.valoracion }}</td>
                 <td>{{ animal.clase }}</td>
                 <td>
                     <div class="d-flex gap-1">
@@ -123,4 +121,5 @@
 
 <a href="{{ url_for('razas') }}" class="btn btn-secondary mt-3">Volver a Razas</a>
 {% endblock %}
+
 
